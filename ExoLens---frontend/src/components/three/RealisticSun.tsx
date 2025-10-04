@@ -30,7 +30,7 @@ export function RealisticSun() {
 
     // Camera setup com aspect dinâmico
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.z = 3.5;
+    camera.position.z = 15;
     cameraRef.current = camera;
 
     // Renderer setup (usa tamanho real do container)
@@ -44,7 +44,7 @@ export function RealisticSun() {
     rendererRef.current = renderer;
 
     // Create Sun Geometry
-    const geometry = new THREE.SphereGeometry(4.5, 64, 64);
+    const geometry = new THREE.SphereGeometry(1.0, 64, 64);
     
     // Sun Material with custom shader
     const sunMaterial = new THREE.ShaderMaterial({
@@ -213,7 +213,7 @@ export function RealisticSun() {
     scene.add(ambientLight);
 
     // Inner Glow
-    const glowGeometry = new THREE.SphereGeometry(5.8, 32, 32);
+    const glowGeometry = new THREE.SphereGeometry(1.2, 32, 32);
     const glowMaterial = new THREE.ShaderMaterial({
       uniforms: {
         glowColor: { value: new THREE.Color(0xffbb44) },
@@ -242,7 +242,7 @@ export function RealisticSun() {
     glowMeshRef.current = glowMesh;
 
     // Outer Glow
-    const outerGlowGeometry = new THREE.SphereGeometry(6.5, 32, 32);
+    const outerGlowGeometry = new THREE.SphereGeometry(1.5, 32, 32);
     const outerGlowMaterial = new THREE.ShaderMaterial({
       uniforms: {
         glowColor: { value: new THREE.Color(0xffaa33) },
