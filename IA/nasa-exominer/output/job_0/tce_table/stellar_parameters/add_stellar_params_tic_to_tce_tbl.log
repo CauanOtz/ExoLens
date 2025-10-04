@@ -1,0 +1,36 @@
+2025-10-04 20:02:04,142 - Starting run...
+2025-10-04 20:02:04,142 - Getting stellar parameters from TIC catalog...
+2025-10-04 20:02:04,144 - Querying results for 1 TICs using TIC-8 catalog...
+2025-10-04 20:02:06,123 - Adding TIC values to the TCE table...
+2025-10-04 20:02:06,144 - Missing values before updating stellar parameters with TIC
+2025-10-04 20:02:06,145 - tce_steff: 0
+2025-10-04 20:02:06,145 - tce_steff_err: 0
+2025-10-04 20:02:06,146 - tce_slogg: 0
+2025-10-04 20:02:06,146 - tce_slogg_err: 0
+2025-10-04 20:02:06,147 - tce_sradius: 0
+2025-10-04 20:02:06,147 - tce_sradius_err: 0
+2025-10-04 20:02:06,147 - tce_smet: 0
+2025-10-04 20:02:06,148 - tce_smet_err: 0
+2025-10-04 20:02:06,148 - tce_sdens: 0
+2025-10-04 20:02:06,148 - tce_sdens_err: 0
+2025-10-04 20:02:06,149 - mag: 0
+2025-10-04 20:02:06,149 - mag_err: 0
+2025-10-04 20:02:06,150 - ra: 0
+2025-10-04 20:02:06,150 - dec: 0
+2025-10-04 20:02:06,158 - Missing values after updating stellar parameters with TIC
+2025-10-04 20:02:06,158 - tce_steff: 0
+2025-10-04 20:02:06,158 - tce_steff_err: 0
+2025-10-04 20:02:06,159 - tce_slogg: 0
+2025-10-04 20:02:06,159 - tce_slogg_err: 0
+2025-10-04 20:02:06,160 - tce_sradius: 0
+2025-10-04 20:02:06,160 - tce_sradius_err: 0
+2025-10-04 20:02:06,161 - tce_smet: 0
+2025-10-04 20:02:06,161 - tce_smet_err: 0
+2025-10-04 20:02:06,161 - tce_sdens: 0
+2025-10-04 20:02:06,162 - tce_sdens_err: 0
+2025-10-04 20:02:06,162 - mag: 0
+2025-10-04 20:02:06,163 - mag_err: 0
+2025-10-04 20:02:06,163 - ra: 0
+2025-10-04 20:02:06,163 - dec: 0
+2025-10-04 20:02:06,164 - tce_smass: 0
+2025-10-04 20:02:06,164 - tce_smass_err: 0
