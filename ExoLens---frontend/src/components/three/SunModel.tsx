@@ -56,7 +56,7 @@ export default function SunModel({
 
   // Camera com FOV moderado para evitar distorção e clipping próximo adequado
   // near pequeno para permitir aproximação sem clipping
-  const camera = new THREE.PerspectiveCamera(45, width / heightPx, 0.01, 5000);
+    const camera = new THREE.PerspectiveCamera(45, width / heightPx, 0.01, 5000);
     camera.position.set(0, 0, 30);
     cameraRef.current = camera;
 
