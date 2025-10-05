@@ -1,4 +1,0 @@
-uid,saturated,num_available_sectors,num_valid_sectors,num_sampled_sectors,sampled_sectors,sampled_qmetrics,sampled_sectors_missingvalues
-167526485-1-S6,,1.0,1.0,5.0,[6 6 6 6 6],[0.999407 0.999407 0.999407 0.999407 0.999407],yes
-167526485-1-S1-39,,21.0,21.0,5.0,[ 8  7  6 34  4],[0.99560034 0.99926364 0.99915814 0.99818987 0.99959177],yes
-167526485-2-S1-39,,21.0,21.0,5.0,[35 36 37 13 27],[0.967329   0.96678656 0.9624898  0.96166486 0.36772522],yes

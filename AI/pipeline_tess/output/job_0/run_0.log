@@ -1,0 +1,82 @@
+2025-10-05 21:52:19,710 - [0] Starting run for 3 TIC IDs in job 0...
+2025-10-05 21:52:19,711 - [0] Downloading data products for the requested TIC IDs...
+2025-10-05 21:52:19,714 - Downloading light curve and DV XML data for TIC 167526485 in sector run 6-6 (2min data)...
+2025-10-05 21:52:29,709 - Found more than one DV XML file for TIC 167526485 in sector run 6-6. Versions found: [415, 144]. Considering only the most recent one: 415
+2025-10-05 21:52:32,025 - INFO
+2025-10-05 21:52:32,026 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2018349182500-s0006-0000000167526485-0126-s/tess2018349182500-s0006-0000000167526485-0126-s_lc.fits with expected size 1598400. [astroquery.mast.cloud]
+2025-10-05 21:52:33,841 - INFO
+2025-10-05 21:52:33,842 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2018349182500-s0006-0000000167526485-0126-s/tess2018349182737-s0006-s0006-0000000167526485-00415_dvr.xml with expected size 121087. [astroquery.mast.cloud]
+2025-10-05 21:52:33,863 - Finished downloading light curve and DV XML data for TIC 167526485 in sector run 6-6 (2min data)...
+2025-10-05 21:52:33,864 - Downloading light curve and DV XML data for TIC 167526485 in sector run 1-39 (2min data)...
+2025-10-05 21:52:37,045 - INFO
+2025-10-05 21:52:37,046 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2018206190142-s0001-s0039-0000000167526485/tess2018206190142-s0001-s0039-0000000167526485-00493_dvr.xml with expected size 2636251. [astroquery.mast.cloud]
+2025-10-05 21:52:38,910 - INFO
+2025-10-05 21:52:38,911 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2018292075959-s0004-0000000167526485-0124-s/tess2018292075959-s0004-0000000167526485-0124-s_lc.fits with expected size 1897920. [astroquery.mast.cloud]
+2025-10-05 21:52:40,963 - INFO
+2025-10-05 21:52:40,963 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2018319095959-s0005-0000000167526485-0125-s/tess2018319095959-s0005-0000000167526485-0125-s_lc.fits with expected size 1923840. [astroquery.mast.cloud]
+2025-10-05 21:52:43,084 - INFO
+2025-10-05 21:52:43,085 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2018349182500-s0006-0000000167526485-0126-s/tess2018349182500-s0006-0000000167526485-0126-s_lc.fits with expected size 1598400. [astroquery.mast.cloud]
+2025-10-05 21:52:44,939 - INFO
+2025-10-05 21:52:44,940 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2019006130736-s0007-0000000167526485-0131-s/tess2019006130736-s0007-0000000167526485-0131-s_lc.fits with expected size 1791360. [astroquery.mast.cloud]
+2025-10-05 21:52:46,944 - INFO
+2025-10-05 21:52:46,945 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2019032160000-s0008-0000000167526485-0136-s/tess2019032160000-s0008-0000000167526485-0136-s_lc.fits with expected size 1805760. [astroquery.mast.cloud]
+2025-10-05 21:52:48,809 - INFO
+2025-10-05 21:52:48,810 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2019058134432-s0009-0000000167526485-0139-s/tess2019058134432-s0009-0000000167526485-0139-s_lc.fits with expected size 1848960. [astroquery.mast.cloud]
+2025-10-05 21:52:50,601 - INFO
+2025-10-05 21:52:50,602 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2019085135100-s0010-0000000167526485-0140-s/tess2019085135100-s0010-0000000167526485-0140-s_lc.fits with expected size 1920960. [astroquery.mast.cloud]
+2025-10-05 21:52:52,623 - INFO
+2025-10-05 21:52:52,624 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2019140104343-s0012-0000000167526485-0144-s/tess2019140104343-s0012-0000000167526485-0144-s_lc.fits with expected size 2041920. [astroquery.mast.cloud]
+2025-10-05 21:52:54,531 - INFO
+2025-10-05 21:52:54,533 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2019169103026-s0013-0000000167526485-0146-s/tess2019169103026-s0013-0000000167526485-0146-s_lc.fits with expected size 2079360. [astroquery.mast.cloud]
+2025-10-05 21:52:56,612 - INFO
+2025-10-05 21:52:56,613 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2020186164531-s0027-0000000167526485-0189-s/tess2020186164531-s0027-0000000167526485-0189-s_lc.fits with expected size 1785600. [astroquery.mast.cloud]
+2025-10-05 21:52:58,662 - INFO
+2025-10-05 21:52:58,663 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2020212050318-s0028-0000000167526485-0190-s/tess2020212050318-s0028-0000000167526485-0190-s_lc.fits with expected size 1848960. [astroquery.mast.cloud]
+2025-10-05 21:53:00,455 - INFO
+2025-10-05 21:53:00,456 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2020238165205-s0029-0000000167526485-0193-s/tess2020238165205-s0029-0000000167526485-0193-s_lc.fits with expected size 1915200. [astroquery.mast.cloud]
+2025-10-05 21:53:02,401 - INFO
+2025-10-05 21:53:02,402 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2020266004630-s0030-0000000167526485-0195-s/tess2020266004630-s0030-0000000167526485-0195-s_lc.fits with expected size 1998720. [astroquery.mast.cloud]
+2025-10-05 21:53:04,244 - INFO
+2025-10-05 21:53:04,245 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2020324010417-s0032-0000000167526485-0200-s/tess2020324010417-s0032-0000000167526485-0200-s_lc.fits with expected size 1903680. [astroquery.mast.cloud]
+2025-10-05 21:53:06,436 - INFO
+2025-10-05 21:53:06,438 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2020351194500-s0033-0000000167526485-0203-s/tess2020351194500-s0033-0000000167526485-0203-s_lc.fits with expected size 1892160. [astroquery.mast.cloud]
+2025-10-05 21:53:08,384 - INFO
+2025-10-05 21:53:08,386 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2021014023720-s0034-0000000167526485-0204-s/tess2021014023720-s0034-0000000167526485-0204-s_lc.fits with expected size 1854720. [astroquery.mast.cloud]
+2025-10-05 21:53:10,528 - INFO
+2025-10-05 21:53:10,528 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2021039152502-s0035-0000000167526485-0205-s/tess2021039152502-s0035-0000000167526485-0205-s_lc.fits with expected size 1828800. [astroquery.mast.cloud]
+2025-10-05 21:53:12,681 - INFO
+2025-10-05 21:53:12,682 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2021065132309-s0036-0000000167526485-0207-s/tess2021065132309-s0036-0000000167526485-0207-s_lc.fits with expected size 1837440. [astroquery.mast.cloud]
+2025-10-05 21:53:14,729 - INFO
+2025-10-05 21:53:14,730 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2021091135823-s0037-0000000167526485-0208-s/tess2021091135823-s0037-0000000167526485-0208-s_lc.fits with expected size 1854720. [astroquery.mast.cloud]
+2025-10-05 21:53:16,689 - INFO
+2025-10-05 21:53:16,690 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2021118034608-s0038-0000000167526485-0209-s/tess2021118034608-s0038-0000000167526485-0209-s_lc.fits with expected size 1952640. [astroquery.mast.cloud]
+2025-10-05 21:53:18,635 - INFO
+2025-10-05 21:53:18,636 - : Found cached file /app/output/job_0/mastDownload/TESS/tess2021146024351-s0039-0000000167526485-0210-s/tess2021146024351-s0039-0000000167526485-0210-s_lc.fits with expected size 2041920. [astroquery.mast.cloud]
+2025-10-05 21:53:18,662 - Finished downloading light curve and DV XML data for TIC 167526485 in sector run 1-39 (2min data)...
+2025-10-05 21:53:18,663 - Downloading light curve and DV XML data for TIC 25155310 in sector run 1-54 (2min data)...
+2025-10-05 21:53:30,770 - TESS SPOC DV XML file found was not found for TIC 25155310 in sector run 1-54 for 2min data. Skipping...
+2025-10-05 21:53:30,818 - [0] Creating TESS SPOC TCE table from DV XML files downloaded for the requested TIC IDs...
+2025-10-05 21:53:35,307 - Launched query: 'SELECT g.source_id, g.ruwe FROM gaiadr2.ruwe as g JOIN tap_upload.sourceids as f ON g.source_id = f.source_id'
+2025-10-05 21:53:35,312 - ------>https
+2025-10-05 21:53:35,327 - host = gea.esac.esa.int:443
+2025-10-05 21:53:35,327 - context = /tap-server/tap/async
+2025-10-05 21:53:35,328 - Content-type = multipart/form-data; boundary====1759701215313===
+2025-10-05 21:53:36,428 - 303
+2025-10-05 21:53:36,429 - 303
+2025-10-05 21:53:36,430 - [('Date', 'Sun, 05 Oct 2025 21:53:36 GMT'), ('Server', 'Apache/2.4.6 (SLES Expanded Support platform 7) OpenSSL/1.0.2k-fips mod_jk/1.2.43'), ('Set-Cookie', 'JSESSIONID=93502A8A2FEB09C91284C205A95D0E40; Path=/tap-server; Secure; HttpOnly'), ('Location', 'https://gea.esac.esa.int/tap-server/tap/async/1759701216692O'), ('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate'), ('Pragma', 'no-cache'), ('Expires', '0'), ('X-XSS-Protection', '1; mode=block'), ('X-Frame-Options', 'SAMEORIGIN'), ('X-Content-Type-Options', 'nosniff'), ('Transfer-Encoding', 'chunked'), ('Content-Type', 'text/plain;charset=ISO-8859-1')]
+2025-10-05 21:53:36,432 - job 1759701216692O, at: https://gea.esac.esa.int/tap-server/tap/async/1759701216692O
+2025-10-05 21:53:36,433 - Retrieving async. results...
+2025-10-05 21:53:38,725 - INFO
+2025-10-05 21:53:38,726 - : Query finished. [astroquery.utils.tap.core]
+2025-10-05 21:53:38,829 - [0] Preprocessing light curve data for the requested TIC IDs...
+2025-10-05 21:54:48,067 - Iterating over /app/output/job_0/tfrecord_data/shard-00000-of-00001-node-2 (1/1)...
+2025-10-05 21:54:48,497 - [0] Extracting difference image data from the DV XML files for the requested TIC IDs...
+2025-10-05 21:54:49,458 - [0] Preprocessing difference image data for the requested TIC IDs...
+2025-10-05 21:54:49,645 - [0] Adding preprocessed difference image data to the TFRecord dataset for the requested TIC IDs...
+2025-10-05 21:54:50,086 - [0] Normalizing features for the TCEs in the TFRecord dataset using set of normalization statistics provided...
+2025-10-05 21:54:50,233 - [0] Running inference on TCEs in the TFRecord dataset using trained ExoMiner model...
+2025-10-05 21:54:50,385 - Loading model...
+2025-10-05 21:54:54,508 - Predicting on dataset predict...
+2025-10-05 21:54:58,220 - 1/Unknown - 3s 3s/step
+2025-10-05 21:54:58,364 - 1/1 [==============================] - 3s 3s/step
+2025-10-05 21:54:58,380 - [0] Finished run for job 0 for 3 TIC IDs.

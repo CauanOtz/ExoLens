@@ -1,9 +1,0 @@
-2025-10-04 20:03:15,975 - [tess_diffimg_TESS.npy] Starting preprocessing...
-2025-10-04 20:03:15,976 - Loading difference image data from /app/output/job_0/diff_img_extracted/tess_diffimg_TESS.npy
-2025-10-04 20:03:16,005 - Number of TCEs to preprocess: 3
-2025-10-04 20:03:16,006 - [tess_diffimg_TESS] Preprocessed 1 example(s) out of 3.
-2025-10-04 20:03:16,020 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S6. Setting data to placeholder value.
-2025-10-04 20:03:16,032 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S1-39. Setting data to placeholder value.
-2025-10-04 20:03:16,043 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-2-S1-39. Setting data to placeholder value.
-2025-10-04 20:03:16,044 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
-2025-10-04 20:03:16,060 - [tess_diffimg_TESS] Finished preprocessing difference image data for 3 examples.

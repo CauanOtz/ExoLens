@@ -1,0 +1,10 @@
+2025-10-05 21:53:34,991 - Starting run...
+2025-10-05 21:53:34,992 - Getting Gaia DR2 source ids from TIC
+2025-10-05 21:53:35,286 - Removing TICs with missing Gaia source ID
+2025-10-05 21:53:35,306 - Querying gaiadr2 source ids for their RUWE values...
+2025-10-05 21:53:35,306 - Query to be performed: SELECT g.source_id, g.ruwe FROM gaiadr2.ruwe as g JOIN tap_upload.sourceids as f ON g.source_id = f.source_id
+2025-10-05 21:53:38,731 - Job status: COMPLETED
+2025-10-05 21:53:38,732 - Job completed successfully. Retrieving results...
+2025-10-05 21:53:38,747 - Query finished and results saved to /app/output/job_0/tce_table/ruwe/gaiadr2.csv.
+2025-10-05 21:53:38,783 - Number of TICs without RUWE value: 0 ouf of 1
+2025-10-05 21:53:38,796 - Number of TCEs without RUWE value: 0 ouf of 3

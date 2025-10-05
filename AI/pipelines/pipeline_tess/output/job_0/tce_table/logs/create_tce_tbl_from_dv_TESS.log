@@ -1,6 +1,0 @@
-2025-10-04 20:02:03,453 - Starting run...
-2025-10-04 20:02:03,555 - Extracting TCEs from 2 xml files for TESS...
-2025-10-04 20:02:03,556 - Target DV XML file tess2018206190142-s0001-s0039-0000000167526485-00493_dvr.xml (1/2)
-2025-10-04 20:02:03,823 - Found 2 TCEs results in tess2018206190142-s0001-s0039-0000000167526485-00493_dvr.xml
-2025-10-04 20:02:04,057 - Found 1 TCEs results in tess2018349182737-s0006-s0006-0000000167526485-00415_dvr.xml
-2025-10-04 20:02:04,091 - Finished extracting 3 TCEs from 2 xml files for tess-spoc-dv_tces_0.csv.

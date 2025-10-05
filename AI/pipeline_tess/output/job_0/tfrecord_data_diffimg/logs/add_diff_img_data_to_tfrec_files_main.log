@@ -1,0 +1,7 @@
+2025-10-05 21:54:49,689 - Started adding difference image data to TFRecord dataset...
+2025-10-05 21:54:49,690 - `Images to be added from preprocessed difference image to TFRecord dataset`: ['diff_imgs', 'oot_imgs', 'target_imgs'].
+2025-10-05 21:54:49,690 - Found 1 source TFRecord files.
+2025-10-05 21:54:49,691 - Found 1 difference image NumPy files.
+2025-10-05 21:54:50,072 - Aggregating tables of examples added to new TFRecord directory with difference image data...
+2025-10-05 21:54:50,085 - Number of examples without difference image data: 0.
+2025-10-05 21:54:50,085 - Finished adding difference image data to TFRecords.
