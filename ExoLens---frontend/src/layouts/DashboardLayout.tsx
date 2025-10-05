@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
 import SunModel from '../components/three/SunModel';
-import EarthModel from '../components/three/EarthModel';
 import PlanetBuilderPanel from '../components/three/PlanetBuilderPanel';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
@@ -153,7 +152,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           }}
         />
         {clickFlash && <div className="sun-click-flash" aria-hidden />}
-        <SunModel modelUrl={new URL('../assets/sun/scene.gltf', import.meta.url).href} />
+  <SunModel autoRotate={true} autoRotateSpeed={0.045} />
       </div>
       <div className={`sun-sections-menu ${sunMenuOpen ? 'open' : ''}`} aria-hidden={!sunMenuOpen}>
         <div className="sun-sections-inner">

@@ -6,34 +6,16 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface SunModelProps {
-  /** Caminho glTF dentro de src/assets via import URL ou passado manualmente */
   modelUrl?: string;
-  /** Caminho público (public/) começando com /  */
   modelPath?: string;
-  /** Altura do container */
+  distance?: number;
   height?: number | string;
-  /** Se true, habilita controles orbitais */
   controls?: boolean;
-  /** Ativa/desativa sombras (custo de performance) */
-  shadows?: boolean;
-  /** Auto rotação lenta do modelo */
   autoRotate?: boolean;
-  /** Intensidade da rotação (radianos/segundo) */
   autoRotateSpeed?: number;
-  /** Limita pixel ratio para performance em dispositivos fracos */
-  maxPixelRatio?: number;
 }
 
-export default function SunModel({
-  modelUrl,
-  modelPath,
-  height = 520,
-  controls = true,
-  shadows = true,
-  autoRotate = false,
-  autoRotateSpeed = 0.2,
-  maxPixelRatio = 2
-}: SunModelProps) {
+export default function SunModel({ modelUrl, modelPath, distance = 8, height = '100%', controls = false, autoRotate = false, autoRotateSpeed = 0.02 }: SunModelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -46,28 +28,20 @@ export default function SunModel({
     const container = containerRef.current;
     if (!container) return;
 
-    // Dimensões iniciais robustas
-    let width = container.clientWidth || container.parentElement?.clientWidth || window.innerWidth;
-    let heightPx = container.clientHeight || 520;
+    // follow EarthModel structure: camera placed at `distance`, load model and center/scale
+    let width = container.clientWidth || window.innerWidth;
+    let heightPx = typeof height === 'number' ? height : container.clientHeight || 520;
 
-    // Cena + background transparente (aproveita o gradient atrás)
     const scene = new THREE.Scene();
-    scene.background = null; // manter transparente
+    scene.background = null;
 
-  // Camera com FOV moderado para evitar distorção e clipping próximo adequado
-  // near pequeno para permitir aproximação sem clipping
-    const camera = new THREE.PerspectiveCamera(45, width / heightPx, 0.01, 5000);
-    camera.position.set(0, 0, 30);
+    const camera = new THREE.PerspectiveCamera(45, width / Math.max(1, heightPx), 0.01, 5000);
+    camera.position.set(0, 0, distance);
     cameraRef.current = camera;
 
-    // Renderer configurado para performance
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, heightPx, false);
-    if (shadows) {
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    }
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     renderer.domElement.style.display = 'block';
@@ -76,78 +50,48 @@ export default function SunModel({
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // Luzes
-    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambient);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(50, 50, 80);
+    scene.add(dir);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    dirLight.position.set(-120, 160, 200);
-    if (shadows) {
-      dirLight.castShadow = true;
-      dirLight.shadow.mapSize.width = 1024;
-      dirLight.shadow.mapSize.height = 1024;
-      dirLight.shadow.camera.near = 1;
-      dirLight.shadow.camera.far = 1000;
-      const cam = dirLight.shadow.camera as THREE.OrthographicCamera;
-      cam.left = -200; cam.right = 200; cam.top = 200; cam.bottom = -200;
-    }
-    scene.add(dirLight);
-
-    // Controles
     if (controls) {
       controlsRef.current = new OrbitControls(camera, renderer.domElement);
       controlsRef.current.enableDamping = true;
       controlsRef.current.dampingFactor = 0.08;
       controlsRef.current.enablePan = false;
-      // permitir aproximação maior para deixar o sol maior na tela
-      controlsRef.current.minDistance = 0.5;
-      controlsRef.current.maxDistance = 400;
+      controlsRef.current.minDistance = 1;
+      controlsRef.current.maxDistance = 1000;
     }
 
-    // Loader glTF
-    const loader = new GLTFLoader();
-    const effectiveUrl = modelPath ? modelPath : (modelUrl || new URL('../../assets/sun/scene.gltf', import.meta.url).href);
-    console.log('[SunModel] carregando glTF:', effectiveUrl);
-
-    const frameModel = (root: THREE.Object3D) => {
-      // compute bounding box and sphere in world space
-      const box = new THREE.Box3().setFromObject(root);
-      const sphere = new THREE.Sphere();
-      box.getBoundingSphere(sphere);
-
-      // recenter model so its bounding sphere center is at origin
-      root.position.x -= sphere.center.x;
-      root.position.y -= sphere.center.y;
-      root.position.z -= sphere.center.z;
-
-      // account for renderer/canvas aspect
-      const aspect = camera.aspect || (container.clientWidth / Math.max(1, container.clientHeight));
-      const vFOV = (camera.fov * Math.PI) / 180;
-      // horizontal fov
-      const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * aspect);
-
-      // required distance so the bounding sphere fits in vertical/horizontal fov
-      const radius = sphere.radius * (root.scale ? Math.max(root.scale.x, root.scale.y, root.scale.z) : 1);
-      const distV = radius / Math.sin(vFOV / 2);
-      const distH = radius / Math.sin(hFOV / 2);
-  // increase padding so the whole sun fits (avoid top being cut)
-  const paddingMultiplier = 0.95; // larger => camera further
-  const dist = Math.max(distV, distH) * paddingMultiplier;
-
-  // position camera a bit higher and further back for safe composition
-  camera.position.set(0, radius * 0.25, dist * 1.05);
-      camera.lookAt(0, 0, 0);
-      // ensure near is small relative to dist to avoid clipping
-      camera.near = Math.max(0.001, dist * 0.001);
-      camera.updateProjectionMatrix();
-
-      if (controlsRef.current) {
-        controlsRef.current.target.set(0, 0, 0);
-        controlsRef.current.update();
+    // pointer-driven model rotation (rotate loaded model)
+    let isPointerDown = false;
+    let lastX = 0;
+    let lastY = 0;
+    const el = renderer.domElement;
+    const onPointerDown = (ev: PointerEvent) => { isPointerDown = true; lastX = ev.clientX; lastY = ev.clientY; try { el.setPointerCapture?.((ev as any).pointerId); } catch {}; if (controlsRef.current) controlsRef.current.enableRotate = false; };
+    const onPointerMove = (ev: PointerEvent) => {
+      if (!isPointerDown) return;
+      const dx = ev.clientX - lastX; const dy = ev.clientY - lastY; lastX = ev.clientX; lastY = ev.clientY;
+      const root = modelRootRef.current;
+      if (root) {
+        root.rotation.y += dx * 0.006;
+        root.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, root.rotation.x + dy * 0.006));
       }
     };
+    const onPointerUp = (ev: PointerEvent) => { isPointerDown = false; try { el.releasePointerCapture?.((ev as any).pointerId); } catch {}; if (controlsRef.current) controlsRef.current.enableRotate = true; };
+    el.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
 
+    const loader = new GLTFLoader();
+    const nasaUrl = 'https://solarsystem.nasa.gov/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBblVRIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--abda6331ea1271cb16bf7b8b08f42b0ad49115b2/Sun_1_1391000.glb?disposition=inline';
+    const defaultLocal = new URL('../../assets/sun/Sun_1_1391000.glb', import.meta.url).href;
+    const effectiveUrl = (modelPath && modelPath.length > 0) ? modelPath : (modelUrl && modelUrl.length > 0) ? modelUrl : (nasaUrl || defaultLocal);
     let disposed = false;
+
     loader.load(
       effectiveUrl,
       (gltf) => {
@@ -155,38 +99,48 @@ export default function SunModel({
         const root = gltf.scene || gltf.scenes?.[0];
         if (!root) return;
         modelRootRef.current = root;
-        // Ativa sombras e preserva emissive do material
+        // center and scale similar to EarthModel
+        const box = new THREE.Box3().setFromObject(root);
+        const sphere = new THREE.Sphere();
+        box.getBoundingSphere(sphere);
+        root.position.x -= sphere.center.x;
+        root.position.y -= sphere.center.y;
+        root.position.z -= sphere.center.z;
+
+        // scale to reasonable world units based on sphere radius
+        const scaleFactor = 1 / Math.max(1e-6, sphere.radius) * 6; // make radius ~6 units
+        root.scale.setScalar(scaleFactor);
+        // then place root at -distance on Z so it sits farther away visually
+        root.position.z = -distance;
+
+        // Improve texture quality: sRGB encoding and anisotropy
+        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
         root.traverse((obj: any) => {
           if (obj.isMesh) {
-            obj.castShadow = shadows;
-            obj.receiveShadow = shadows;
-            if (obj.material) {
-              // garantir que emissiveIntensity esteja presente
-              if ('emissive' in obj.material && obj.material.emissive) {
-                obj.material.emissiveIntensity = obj.material.emissiveIntensity ?? 1.0;
-              }
-              obj.material.needsUpdate = true;
-            }
+            obj.castShadow = false;
+            obj.receiveShadow = false;
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            mats.forEach((m: any) => {
+              if (!m) return;
+              ['map','roughnessMap','metalnessMap','normalMap','aoMap','emissiveMap'].forEach((k:any) => {
+                const tex = m[k];
+                if (tex && tex.isTexture) {
+                  try { (tex as any).encoding = (THREE as any).sRGBEncoding; } catch {}
+                  try { tex.anisotropy = maxAniso; } catch {}
+                  tex.needsUpdate = true;
+                }
+              });
+              if (m.needsUpdate !== undefined) m.needsUpdate = true;
+            });
           }
         });
+
         scene.add(root);
-        frameModel(root);
-        // Animações
-        if (gltf.animations && gltf.animations.length) {
-          mixerRef.current = new THREE.AnimationMixer(root);
-          const action = mixerRef.current.clipAction(gltf.animations[0]);
-          action.play();
-        }
       },
-      undefined,
+      // progress
+      (xhr) => { if (xhr && xhr.lengthComputable) console.debug(`[SunModel] load ${Math.round((xhr.loaded / xhr.total) * 100)}%`); },
       (err) => {
-        console.warn('[SunModel] Falha ao carregar glTF', err);
-        const fallback = new THREE.Mesh(
-          new THREE.SphereGeometry(10, 64, 64),
-          new THREE.MeshStandardMaterial({ color: 0xffcc55, emissive: 0xff9900, emissiveIntensity: 1.6 })
-        );
-        scene.add(fallback);
-        frameModel(fallback);
+        console.warn('[SunModel] failed to load', err);
       }
     );
 
@@ -236,7 +190,7 @@ export default function SunModel({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [modelUrl, modelPath, controls, shadows, autoRotate, autoRotateSpeed, maxPixelRatio]);
+  }, [modelUrl, modelPath, distance, controls, height]);
 
-  return <div ref={containerRef} style={{ width: '100%', height, position: 'relative' }} />;
+  return <div ref={containerRef} style={{ width: '100%', height: height, position: 'relative' }} />;
 }

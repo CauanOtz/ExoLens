@@ -4,6 +4,8 @@ import * as THREE from 'three';
 // @ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import EarthModel from './EarthModel';
+import JupiterModel from './JupiterModel';
+import SunModel from './SunModel';
 const earthIcon = new URL('../../assets/earth.svg', import.meta.url).href;
 
 interface PlanetPreviewProps {
@@ -15,7 +17,7 @@ interface PlanetPreviewProps {
 export default function PlanetPreview3D({ color = '#c66', radius = 1, composition = 'rocky' }: PlanetPreviewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const [preset, setPreset] = useState<'custom' | 'earth'>('custom');
+  const [preset, setPreset] = useState<'custom' | 'earth' | 'jupiter' | 'sun'>('custom');
   const [internalColor, setInternalColor] = useState(color);
   const [internalRadius, setInternalRadius] = useState(radius);
   const [internalComposition, setInternalComposition] = useState<typeof composition>(composition);
@@ -284,6 +286,14 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
         <div style={{ position: 'absolute', inset: 0 }}>
           <EarthModel modelPath={undefined} distance={12} height={'100%'} controls={true} />
         </div>
+      ) : preset === 'jupiter' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <JupiterModel distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'sun' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <SunModel height={'100%'} controls={true} />
+        </div>
       ) : (
         <div ref={mountRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
       )}
@@ -299,6 +309,14 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
           <button onClick={() => setPreset('earth')} aria-pressed={preset === 'earth'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'earth' ? 'linear-gradient(180deg,#2a66d6,#1e4fb8)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
             <img src={earthIcon} alt="" style={{ width: 18, height: 18, opacity: 0.98 }} />
             <span style={{ fontWeight: 600 }}>Terra</span>
+          </button>
+          <button onClick={() => setPreset('jupiter')} aria-pressed={preset === 'jupiter'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'jupiter' ? 'linear-gradient(180deg,#d8a24a,#b87f2a)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#e1b07a,#d38a2f)' }} />
+            <span style={{ fontWeight: 600 }}>Júpiter</span>
+          </button>
+          <button onClick={() => setPreset('sun')} aria-pressed={preset === 'sun'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'sun' ? 'linear-gradient(180deg,#ffd07a,#ffb36b)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 18, background: 'radial-gradient(circle at 30% 30%, #fff7df, #ffd07a 40%, #ffb36b 70%)', boxShadow: '0 6px 18px rgba(255,150,50,0.6)' }} />
+            <span style={{ fontWeight: 600 }}>Sol</span>
           </button>
           <button onClick={() => setPreset('custom')} aria-pressed={preset === 'custom'} style={{ padding: '8px 10px', borderRadius: 8, background: preset === 'custom' ? 'rgba(255,255,255,0.04)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>Custom</button>
         </div>
