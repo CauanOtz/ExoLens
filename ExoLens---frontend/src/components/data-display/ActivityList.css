@@ -1,0 +1,8 @@
+.activity-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+.activity-list.empty { color:#64748b; font-size:.875rem; }
+.activity-item { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:.6rem .75rem; display:flex; justify-content:space-between; align-items:center; }
+.activity-message { font-size:.85rem; color:#0f172a; }
+.activity-time { font-size:.7rem; color:#64748b; }
+.activity-item.type-warning { border-color:#f59e0b; }
+.activity-item.type-success { border-color:#10b981; }
+.activity-item.type-error { border-color:#ef4444; }
