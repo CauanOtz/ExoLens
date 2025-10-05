@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 interface EarthModelProps {
   modelUrl?: string;
   modelPath?: string;
-  distance?: number; // distance from origin on Z axis (positive = further away)
+  distance?: number;
   height?: number | string;
   controls?: boolean;
 }
@@ -99,7 +99,8 @@ export default function EarthModel({ modelUrl, modelPath, distance = 120, height
     window.addEventListener('pointercancel', onPointerUp);
 
     const loader = new GLTFLoader();
-    const effectiveUrl = modelPath ? modelPath : (modelUrl || new URL('../../assets/earth/Earth_1_12756.glb', import.meta.url).href);
+    const nasaUrl = 'https://solarsystem.nasa.gov/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBaTBSIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--7c1183d35fdc9e4b5143c8601376552b89b5d99f/Earth_1_12756.glb?disposition=inline';
+    const effectiveUrl = (modelPath && modelPath.length > 0) ? modelPath : (modelUrl && modelUrl.length > 0) ? modelUrl : nasaUrl || new URL('../../assets/earth/Earth_1_12756.glb', import.meta.url).href;
     let disposed = false;
 
     loader.load(
@@ -125,16 +126,34 @@ export default function EarthModel({ modelUrl, modelPath, distance = 120, height
         // then place root at -distance on Z so it sits farther away visually
         root.position.z = -distance;
 
+        // Improve texture quality: sRGB encoding and anisotropy
+        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
         root.traverse((obj: any) => {
           if (obj.isMesh) {
             obj.castShadow = false;
             obj.receiveShadow = false;
-            if (obj.material) obj.material.needsUpdate = true;
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            mats.forEach((m: any) => {
+              if (!m) return;
+              ['map','roughnessMap','metalnessMap','normalMap','aoMap','emissiveMap'].forEach((k:any) => {
+                const tex = m[k];
+                if (tex && tex.isTexture) {
+                  try { (tex as any).encoding = (THREE as any).sRGBEncoding; } catch {}
+                  try { tex.anisotropy = maxAniso; } catch {}
+                  tex.needsUpdate = true;
+                }
+              });
+              if (m.needsUpdate !== undefined) m.needsUpdate = true;
+            });
           }
         });
+
         scene.add(root);
       },
-      undefined,
+      // progress
+      (xhr) => {
+        if (xhr && xhr.lengthComputable) console.debug(`[EarthModel] load ${Math.round((xhr.loaded / xhr.total) * 100)}%`);
+      },
       (err) => {
         console.warn('[EarthModel] failed to load', err);
       }

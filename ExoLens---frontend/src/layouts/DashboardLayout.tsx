@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { Sidebar } from '../components/layout/Sidebar';
+import React, { Suspense } from 'react';
 import SunModel from '../components/three/SunModel';
-import EarthModel from '../components/three/EarthModel';
-import PlanetBuilderPanel from '../components/three/PlanetBuilderPanel';
+// lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
+const PlanetBuilderPanel = React.lazy(() => import('../components/three/PlanetBuilderPanel'));
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
 import { useEffect, useState, useRef } from 'react';
@@ -34,7 +34,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     };
   }, []);
 
-  // Close sun menu when route changes (to keep context clean)
   useEffect(() => { if (sunMenuOpen) setSunMenuOpen(false); }, [location.pathname]);
 
   useEffect(() => {
@@ -149,11 +148,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             }
             setSunMenuOpen(o => !o);
             setClickFlash(true);
-            window.setTimeout(() => setClickFlash(false), 600);
+            // shorter flash to match faster UI transitions
+            window.setTimeout(() => setClickFlash(false), 360);
           }}
         />
         {clickFlash && <div className="sun-click-flash" aria-hidden />}
-        <SunModel modelUrl={new URL('../assets/sun/scene.gltf', import.meta.url).href} />
+  <SunModel autoRotate={true} autoRotateSpeed={0.045} />
       </div>
       <div className={`sun-sections-menu ${sunMenuOpen ? 'open' : ''}`} aria-hidden={!sunMenuOpen}>
         <div className="sun-sections-inner">
@@ -172,7 +172,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* In-layout Transit panel (slides in without route change) */}
       <div className={`transit-panel ${transitOpen ? 'open' : ''} ${transitActive ? 'active' : ''}`} aria-hidden={!transitOpen}>
         <div className="transit-panel-inner">
-          <button className="transit-close" onClick={() => { setTransitActive(false); setTimeout(() => setTransitOpen(false), 420); }} aria-label="Fechar Trânsitos">×</button>
+          <button className="transit-close" onClick={() => { setTransitActive(false); setTimeout(() => setTransitOpen(false), 320); }} aria-label="Fechar Trânsitos">×</button>
           <TransitPage />
         </div>
       </div>
@@ -182,14 +182,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           className="back-star"
           aria-label="Voltar"
           title="Voltar"
-          onClick={() => {
+            onClick={() => {
             setLeftOpen(false);
             setIsClosing(true);
+            // shorten the close delay to match new CSS close transitions
             closeTimeoutRef.current = window.setTimeout(() => {
               setIsClosing(false);
               setGeneratorOpen(false);
               window.dispatchEvent(new CustomEvent('close-generator'));
-            }, 900);
+            }, 360);
           }}
         >
           {/* simple inline star SVG */}
@@ -214,11 +215,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </a>
         </nav>
       </div>
-      <Sidebar />
       {/* Generator full-screen panel (left menu + 3D preview) */}
       {generatorOpen && (
         <div className="generator-overlay" aria-hidden={!generatorOpen}>
-          <PlanetBuilderPanel onClose={() => { setTransitOpen(false); setGeneratorOpen(false); setLeftOpen(false); setSunPhase('dashboard'); }} />
+          <Suspense fallback={<div className="generator-left" aria-hidden="true" /> }>
+            <PlanetBuilderPanel onClose={() => { setTransitOpen(false); setGeneratorOpen(false); setLeftOpen(false); setSunPhase('dashboard'); }} />
+          </Suspense>
         </div>
       )}
       {/* Debug overlay: visible control to toggle sun menu and show state (temporary) */}
