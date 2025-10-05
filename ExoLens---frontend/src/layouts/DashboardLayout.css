@@ -492,6 +492,29 @@
 
 .dashboard-layout.sun-phase-generator .left-options { box-shadow:0 12px 48px -6px rgba(255,130,70,.35),0 0 0 1px rgba(255,180,120,.08) inset; }
 
+/* Ensure generator-open takes priority over any sun-phase transforms: force sun to exit */
+.dashboard-layout.generator-open.sun-phase-dashboard .sun-container-3d,
+.dashboard-layout.generator-open.sun-phase-transit .sun-container-3d,
+.dashboard-layout.generator-open.sun-phase-generator .sun-container-3d,
+.dashboard-layout.generator-open.sun-phase-settings .sun-container-3d,
+.dashboard-layout.generator-open .sun-container-3d {
+  transform: translateX(-160%) translateY(-6vh) scale(0.86) !important;
+  transition: transform 640ms cubic-bezier(.22,.95,.25,1) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 720px) {
+  .dashboard-layout.generator-open.sun-phase-dashboard .sun-container-3d,
+  .dashboard-layout.generator-open.sun-phase-transit .sun-container-3d,
+  .dashboard-layout.generator-open.sun-phase-generator .sun-container-3d,
+  .dashboard-layout.generator-open.sun-phase-settings .sun-container-3d,
+  .dashboard-layout.generator-open .sun-container-3d {
+    transform: translateY(-140%) translateX(0) scale(0.85) !important;
+    opacity: 0 !important;
+  }
+}
+
 .sidebar .planet-btn { position:relative; overflow:visible; }
 .sidebar .planet-btn .planet-sphere { filter: drop-shadow(0 0 4px rgba(255,255,255,0.15)) drop-shadow(0 0 18px rgba(255,200,120,0.08)); transition: transform .5s cubic-bezier(.25,.9,.25,1), filter .6s ease; }
 .sidebar .planet-btn:hover .planet-sphere { transform: scale(1.18) rotateZ(3deg); filter: drop-shadow(0 0 10px rgba(255,210,140,0.5)) drop-shadow(0 0 25px rgba(255,150,70,0.35)); }

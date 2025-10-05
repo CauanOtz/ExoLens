@@ -5,7 +5,7 @@ import PlanetBuilderPanel from '../components/three/PlanetBuilderPanel';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
 import { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 interface DashboardLayoutProps { children: ReactNode }
 
@@ -21,7 +21,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [transitOpen, setTransitOpen] = useState(false);
   const [transitActive, setTransitActive] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const onOpen = () => setGeneratorOpen(true);
@@ -58,11 +57,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [location.pathname]);
 
   // If user opens generator via legacy custom event ensure route reflects it
-  useEffect(() => {
-    if (generatorOpen && location.pathname !== '/generator') {
-      navigate('/generator');
-    }
-  }, [generatorOpen, location.pathname, navigate]);
+  // NOTE: removed automatic navigation to /generator to keep generator in-layout
+  // and avoid route changes. The generator is purely in-layout and controlled
+  // by `generatorOpen` state.
 
   useEffect(() => {
     return () => {
@@ -99,6 +96,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     setTransitOpen(false);
     setTransitActive(false);
     setGeneratorOpen(true);
+    setSunPhase('generator');
     // open left options after a tick to allow CSS transitions
     window.setTimeout(() => setLeftOpen(true), 40);
   };
@@ -219,7 +217,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Generator full-screen panel (left menu + 3D preview) */}
       {generatorOpen && (
         <div className="generator-overlay" aria-hidden={!generatorOpen}>
-          <PlanetBuilderPanel onClose={() => { setTransitOpen(false); setGeneratorOpen(false); setLeftOpen(false); }} />
+          <PlanetBuilderPanel onClose={() => { setTransitOpen(false); setGeneratorOpen(false); setLeftOpen(false); setSunPhase('dashboard'); }} />
         </div>
       )}
       {/* Debug overlay: visible control to toggle sun menu and show state (temporary) */}
