@@ -6,23 +6,23 @@ import { MassUnit, RadiusUnit, TimeUnit, TemperatureUnit } from './units';
 export type StarParams = {
   effective_temperature_value: number;
   effective_temperature_error: number;
-  effective_temperature_unit: TemperatureUnit;
+  effective_temperature_unit: string;
   mass_value: number;
   mass_error: number;
-  mass_unit: MassUnit;
+  mass_unit: string;
   radius_value: number;
   radius_error: number;
-  radius_unit: RadiusUnit;
+  radius_unit: string;
 };
 
 //parametros do candidato
 export type CandidateParams = {
   mass_value: number;
   mass_error: number;
-  mass_unit: MassUnit;
+  mass_unit: string;
   radius_value: number;
   radius_error: number;
-  radius_unit: RadiusUnit;
+  radius_unit: string;
 };
 
 //parametros do sinal
@@ -31,10 +31,10 @@ export type SignalParams = {
   impact_parameter_error: number;
   orbital_period_value: number;
   orbital_period_error: number;
-  orbital_period_unit: TimeUnit;
+  orbital_period_unit: string;
   transit_duration_value: number;
   transit_duration_error: number;
-  transit_duration_unit: TimeUnit;
+  transit_duration_unit: string;
   transit_depth_value: number;
   transit_depth_error: number;
 

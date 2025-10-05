@@ -1,17 +1,14 @@
 import { z } from 'zod';
 
-
-import { MassUnit, RadiusUnit, TimeUnit, TemperatureUnit } from '../../@types/units'; 
- 
 export const signalParams = z.object({
     impact_parameter_value: z.number().min(0),
     impact_parameter_error: z.number().min(0),
     orbital_period_value: z.number().min(0),
     orbital_period_error: z.number().min(0),
-    orbital_period_unit: z.string(),
+    orbital_period_unit: z.enum(['seconds', 'minutes', 'hours', 'days', 'years']),
     transit_duration_value: z.number().min(0),
     transit_duration_error: z.number().min(0),
-    transit_duration_unit: z.enum(TimeUnit),
+    transit_duration_unit: z.enum(['seconds', 'minutes', 'hours', 'days', 'years']),
     transit_depth_value: z.number().min(0),
     transit_depth_error: z.number().min(0),
 });
@@ -20,35 +17,34 @@ export const signalParams = z.object({
 export const candidateParams = z.object({
     mass_value: z.number().min(0),
     mass_error: z.number().min(0),
-    mass_unit: z.nativeEnum(MassUnit),
+    mass_unit: z.enum(['Solar Mass', 'Jupiter Mass', 'Earth Mass', 'kg']),
     radius_value: z.number().min(0),
     radius_error: z.number().min(0),
-    radius_unit: z.nativeEnum(RadiusUnit),
+    radius_unit: z.enum(['Solar Radius', 'Jupiter Radius', 'Earth Radius', 'km']),
 });
 
 
 export const starParams = z.object({
     effective_temperature_value: z.number().min(0),
     effective_temperature_error: z.number().min(0),
-    effective_temperature_unit: z.nativeEnum(TemperatureUnit),
+    effective_temperature_unit: z.enum(['K']),
     mass_value: z.number().min(0),
     mass_error: z.number().min(0),
-    mass_unit: z.nativeEnum(MassUnit),
+    mass_unit: z.enum(['Solar Mass', 'Jupiter Mass', 'Earth Mass', 'kg']),
     radius_value: z.number().min(0),
     radius_error: z.number().min(0),
-    radius_unit: z.nativeEnum(RadiusUnit),
+    radius_unit: z.enum(['Solar Radius', 'Jupiter Radius', 'Earth Radius', 'km']),
 });
 
 export const registerPredictionSchema = z.object({
-    description: z.string().min(7, "A descrição precisa ter no mínimo 3 caracteres."),
-    probability: z.number().min(0).max(1),
-    classification: z.enum(['POSITIVE', 'NEGATIVE', 'FALSE_POSITIVE', 'FALSE_NEGATIVE','CONFIRMED']),  
-    createdAt: z.date().optional(),
-    starParams: starParams,
-    candidateParams: candidateParams,
-    signalParams: signalParams,
-    userId: z.string().uuid(),
-
+  description: z.string().min(7, "Description must be at least 7 characters."),
+  probability: z.number().min(0).max(1),
+  classification: z.enum(['FALSE POSITIVE','CANDIDATE','CONFIRMED']),  
+  createdAt: z.date().optional(),
+  starParams: starParams,
+  candidateParams: candidateParams,
+  signalParams: signalParams,
+  userId: z.string().uuid(),
 });
 
 export const viewPredictionSchema = z.object({
@@ -65,8 +61,13 @@ export const viewPredictionSchema = z.object({
     transit_duration_unit: z.string(),
     orbital_period_value: z.number(),
     orbital_period_unit: z.string(),
-
-
+    st_mass_value: z.number().min(0),
+    st_massunit: z.string(),
+    st_radius_value: z.number().min(0),
+    st_radiusunit: z.string(),
+    st_teff_value: z.number().min(0),
+    st_teffunit: z.string(),
+    existingData: z.boolean(),
 })
 
 const measurementValueAndError = z.object({
@@ -103,6 +104,8 @@ export const formattedPredictionDTOSchema = z.object({
     radius: measurementValueAndErrorAndUnit,
     effective_temperature: measurementValueAndErrorAndUnit,
   }),
+  userId: z.string().uuid(),
+  existingData: z.boolean(),
 });
 
 
@@ -116,7 +119,8 @@ type PredictionWithFlatParams = {
   starParams: StarParams;
   candidateParams: CandidateParams;
   signalParams: SignalParams;
- 
+  existingData: boolean;
+  userId: string;
 };
 
 export function formatPredictionByViewSchema(prediction: any): ViewPredictionDTO {
@@ -134,10 +138,17 @@ export function formatPredictionByViewSchema(prediction: any): ViewPredictionDTO
     transit_duration_unit: prediction.signalParams.transit_duration_unit,
     orbital_period_value: prediction.signalParams.orbital_period_value,
     orbital_period_unit: prediction.signalParams.orbital_period_unit,
+    st_mass_value: prediction.starParams.mass_value,
+    st_massunit: prediction.starParams.mass_unit,
+    st_radius_value: prediction.starParams.radius_value,
+    st_radiusunit: prediction.starParams.radius_unit,
+    st_teff_value: prediction.starParams.effective_temperature_value,
+    st_teffunit: prediction.starParams.effective_temperature_unit,
+    existingData: prediction.existingData,
+    
   };
   return predictionDTO;
 }
-
 
 
 export function formatPredictionForResponse(prediction: PredictionWithFlatParams): FormattedPredictionDTO {
@@ -196,6 +207,8 @@ export function formatPredictionForResponse(prediction: PredictionWithFlatParams
         error: prediction.signalParams.impact_parameter_error,
       },
     },
+    userId: prediction.userId,
+    existingData: prediction.existingData,
   };
 
   return predictionDTO;
