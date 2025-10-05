@@ -26,6 +26,7 @@ export class PredictionController {
                 throw new Error('ID is required');
             }
          
+     
             const prediction = await this.PredictionService.getPredictionById(id);
 
             return res.status(200).json(prediction);

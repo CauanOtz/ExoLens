@@ -1,10 +1,12 @@
-import { ViewPredictionDTO, RegisterPredicitionDTO } from './../validators/predictionValidator';
+import { ViewPredictionDTO } from './../validators/predictionValidator';
 
 export interface IExoPlanetDataSource {
   findAll(): Promise<ViewPredictionDTO[]>;  
 
   findById(id: string): Promise<ViewPredictionDTO | null>;
+
+  searchExoPlanets(query: string): Promise<ViewPredictionDTO[]>;
   
-  save(prediction: RegisterPredicitionDTO): Promise<ViewPredictionDTO>;
+  saveExoPlanetById(planetId: string, userId: string): Promise<ViewPredictionDTO>;
   
 }

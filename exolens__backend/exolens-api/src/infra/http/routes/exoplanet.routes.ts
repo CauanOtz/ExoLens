@@ -1,109 +1,117 @@
-import { Router, Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
+import { ExoPlanetController } from "../../../app/controllers/ExoPlanetController";
 import { ExoPlanetApiDataSource } from "../../../app/datasources/ExoPlanetApi.datasource";
 import { PredictionRepository } from "../../../app/repositories/PredicitionRepository";
-import { ExoPlanetController } from "../../../app/controllers/ExoPlanetController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
+const exoplanetRoutes = express.Router();
+
 const predictionRepository = new PredictionRepository();
-const exoPlanetController = new ExoPlanetController(
-  new ExoPlanetApiDataSource(predictionRepository)
-);
-const exoplanetRoutes = Router();
-
-
-/**
- * @swagger
- * tags:
- *   - name: Exoplanets
- *     description: NASA Exoplanet Archive integration
- */
+const exoPlanetApiDataSource = new ExoPlanetApiDataSource(predictionRepository);
+const exoPlanetController = new ExoPlanetController(exoPlanetApiDataSource);
 
 /**
  * @swagger
  * /api/exoplanets:
  *   get:
- *     summary: Lists all exoplanets from the NASA archive
+ *     summary: Get all exoplanets from NASA Exoplanet Archive
  *     tags: [Exoplanets]
- *     description: Returns a list of formatted exoplanets from NASA's public archive.
  *     responses:
  *       200:
- *         description: Success. Returns a list of exoplanets.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *       500:
- *         description: Internal server error.
- *   post:
- *     summary: Creates a new exoplanet prediction
- *     tags: [Exoplanets]
- *     description: Registers a new exoplanet prediction in the database. Requires authentication.
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               description:
- *                 type: string
- *               probability:
- *                 type: number
- *               classification:
- *                 type: string
- *             example:
- *               description: "My new candidate"
- *               probability: 0.95
- *               classification: "CANDIDATE"
- *     responses:
- *       201:
- *         description: Prediction created successfully.
- *       400:
- *         description: Invalid request (validation error).
- *       401:
- *         description: Unauthorized (token is missing or invalid).
- *       500:
- *         description: Internal server error.
+ *         description: List of exoplanets retrieved successfully.
  */
 exoplanetRoutes.get("/", (req: Request, res: Response, next: NextFunction) =>
   exoPlanetController.getAll(req, res, next)
-);
-
-exoplanetRoutes.post(
-  "/",
-  authMiddleware,
-  (req: Request, res: Response, next: NextFunction) =>
-    exoPlanetController.createExoPlanetPrediction(req, res, next)
 );
 
 /**
  * @swagger
  * /api/exoplanets/{id}:
  *   get:
- *     summary: Finds an exoplanet by its ID (name)
+ *     summary: Get an exoplanet by its Kepler name
  *     tags: [Exoplanets]
- *     description: Returns the data of a single exoplanet based on its name (e.g., "Kepler-22 b").
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID (name) of the exoplanet to find.
  *         schema:
  *           type: string
+ *         description: Kepler name of the exoplanet.
  *     responses:
  *       200:
- *         description: Success. Returns the exoplanet data.
+ *         description: Exoplanet retrieved successfully.
  *       404:
  *         description: Exoplanet not found.
- *       500:
- *         description: Internal server error.
  */
 exoplanetRoutes.get("/:id", (req: Request, res: Response, next: NextFunction) =>
   exoPlanetController.getById(req, res, next)
 );
 
-export {exoplanetRoutes};
+/**
+ * @swagger
+ * /api/exoplanets/{id}:
+ *   post:
+ *     summary: Save an existing exoplanet as a user prediction
+ *     tags: [Exoplanets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Kepler name of the exoplanet to associate with the logged user.
+ *     responses:
+ *       201:
+ *         description: Exoplanet prediction created successfully for the authenticated user.
+ *       400:
+ *         description: Missing or invalid parameters.
+ *       401:
+ *         description: Unauthorized. Token missing or invalid.
+ *       404:
+ *         description: Exoplanet not found in NASA Archive.
+ */
+exoplanetRoutes.post(
+  "/:id",
+  authMiddleware,
+  (req: Request, res: Response, next: NextFunction) =>
+    exoPlanetController.createExoPlanetPrediction(req, res, next)
+); // async searchExoPlanets(req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         const { query } = req.query;
+    //         if (!query || typeof query !== 'string') {
+    //             return res.status(400).json({ message: "Missing or invalid 'query' parameter." });
+    //         }
+    //         const results = await this.exoPlanetApiDataSource.searchExoPlanets(query);
+    //         return res.status(200).json(results);
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
+
+/**
+ * @swagger
+ * /api/exoplanets/search:
+ *   get:
+ *     summary: Search exoplanets by name
+ *     tags: [Exoplanets]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search term to match against exoplanet names.
+ *     responses:
+ *       200:
+ *         description: List of exoplanets matching the search term.
+ *       400:
+ *         description: Missing or invalid 'query' parameter.
+ */
+exoplanetRoutes.get("/search", (req: Request, res: Response, next: NextFunction) =>
+  exoPlanetController.searchExoPlanets(req, res, next)
+);
+
+
+export { exoplanetRoutes };

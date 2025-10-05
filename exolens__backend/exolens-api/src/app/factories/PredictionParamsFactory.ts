@@ -3,19 +3,18 @@ import {
   CandidateParams,
   SignalParams
 } from '../validators/predictionValidator';
-import { MassUnit, RadiusUnit, TimeUnit, TemperatureUnit } from '../../@types/units';
 
 export function createStarParams(overrides: Partial<StarParams> = {}): StarParams {
   const defaultParams: StarParams = {
     effective_temperature_value: 5778,
     effective_temperature_error: 50,
-    effective_temperature_unit: TemperatureUnit.KELVIN,
+    effective_temperature_unit: 'K',
     mass_value: 1.0,
     mass_error: 0.05,
-    mass_unit: MassUnit.SOLAR_MASS,
+    mass_unit: 'Solar Mass',
     radius_value: 1.0,
     radius_error: 0.02,
-    radius_unit: RadiusUnit.SOLAR_RADIUS,
+    radius_unit: 'Solar Radius',
   };
 
   return { ...defaultParams, ...overrides };
@@ -25,10 +24,10 @@ export function createCandidateParams(overrides: Partial<CandidateParams> = {}):
   const defaultParams: CandidateParams = {
     mass_value: 1.0,
     mass_error: 0.1,
-    mass_unit: MassUnit.JUPITER_MASS,
+    mass_unit: 'Jupiter Mass',
     radius_value: 1.0,
     radius_error: 0.1,
-    radius_unit: RadiusUnit.JUPITER_RADIUS,
+    radius_unit: 'Earth Radius',
   };
 
   return { ...defaultParams, ...overrides };
@@ -40,10 +39,10 @@ export function createSignalParams(overrides: Partial<SignalParams> = {}): Signa
     impact_parameter_error: 0.05,
     orbital_period_value: 365.25,
     orbital_period_error: 0.1,
-    orbital_period_unit: TimeUnit.DAYS, 
+    orbital_period_unit: 'days', 
     transit_duration_value: 3.5,
     transit_duration_error: 0.2,
-    transit_duration_unit: TimeUnit.HOURS,
+    transit_duration_unit: 'hours',
     transit_depth_value: 840,
     transit_depth_error: 10,
   };

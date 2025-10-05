@@ -1,4 +1,3 @@
-// src/controllers/ExoPlanetController.ts
 
 import { ExoPlanetApiDataSource } from "../datasources/ExoPlanetApi.datasource";
 import { Request, Response, NextFunction } from 'express';
@@ -36,21 +35,34 @@ export class ExoPlanetController {
             next(error);
         }
     }
+   
+    
+    async searchExoPlanets(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { query } = req.query;
+            if (!query || typeof query !== 'string') {
+                return res.status(400).json({ message: "Missing or invalid 'query' parameter." });
+            }
+            const results = await this.exoPlanetApiDataSource.searchExoPlanets(query);
+            return res.status(200).json(results);
+        } catch (error) {
+            next(error);
+        }
+    }
 
     async createExoPlanetPrediction(req: Request, res: Response, next: NextFunction) {
         try {
+
+            const planetId = req.params.id;
+            if (!planetId) {
+                return res.status(400).json({ message: "Missing exoplanet ID in request parameters." });
+            }
             const userId = req.user?.id;
             if (!userId) {
                 return res.status(401).json({ message: 'Unauthorized: User not authenticated.' });
             }
-
-
-            const predictionData = registerPredictionSchema.parse({
-                ...req.body,
-                userId: userId, 
-            });
             
-            const newPrediction = await this.exoPlanetApiDataSource.save(predictionData);
+            const newPrediction = await this.exoPlanetApiDataSource.saveExoPlanetById(planetId, userId);
             return res.status(201).json(newPrediction);
 
         } catch (error) {

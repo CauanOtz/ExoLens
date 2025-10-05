@@ -48,7 +48,7 @@ export const registerPredictionSchema = z.object({
 });
 
 export const viewPredictionSchema = z.object({
-    id: z.string().uuid(),
+    id: z.string(),
     description: z.string(),
     probability: z.number(),
     classification: z.string(),

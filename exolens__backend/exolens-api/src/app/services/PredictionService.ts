@@ -1,6 +1,5 @@
 import { RegisterPredicitionDTO, FormattedPredictionDTO, formatPredictionForResponse, formatPredictionByViewSchema } from '../validators/predictionValidator';
 import { NotFoundError } from '../../core/errors/AppError';
-import { get } from 'http';
 import { PredictionRepository } from './../repositories/PredicitionRepository';
 import { createStarParams, createCandidateParams, createSignalParams} from '../factories/PredictionParamsFactory';
 export class PredictionService {
