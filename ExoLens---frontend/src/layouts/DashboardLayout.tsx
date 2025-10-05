@@ -1,17 +1,22 @@
 import type { ReactNode } from 'react';
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { AuthModal } from '../components/auth/AuthModal';
 import SunModel from '../components/three/SunModel';
-// lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
-const PlanetBuilderPanel = React.lazy(() => import('../components/three/PlanetBuilderPanel'));
+import { AboutSection } from '../pages/Settings/AboutSection';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
-import { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+// lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
+const PlanetBuilderPanel = React.lazy(() => import('../components/three/PlanetBuilderPanel'));
 
 interface DashboardLayoutProps { children: ReactNode }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalView, setModalView] = useState<'login' | 'signup'>('login');
+  const openAuthModal = (view: 'login' | 'signup') => { setModalView(view); setIsModalOpen(true); };
   const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [isAboutVisible, setAboutVisible] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const closeTimeoutRef = useRef<number | null>(null);
@@ -105,6 +110,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className={`dashboard-layout sun-phase-${sunPhase} ${generatorOpen ? 'generator-open' : ''} ${isClosing ? 'generator-closing' : ''} ${sunMenuOpen ? 'sun-menu-open' : ''} ${transitOpen ? 'transit-open' : ''} ${transitActive ? 'transit-active' : ''}`}>
+      <header className="dashboard-header">
+        <img src={new URL('../assets/NOISE/NoiseLogo.png', import.meta.url).href} alt="NOISE Logo" className="header-logo" />
+      </header>
+       <nav className="auth-links">
+        <button className="auth-link" onClick={() => openAuthModal('login')}>
+          Log-in
+        </button>
+        <button className="auth-button" onClick={() => openAuthModal('signup')}>
+          Sign-in
+        </button>
+      </nav>
       <div className="space-bg" aria-hidden="true">
         <div className="stars-small" aria-hidden="true" />
         <div className="stars-large" aria-hidden="true" />
@@ -165,8 +181,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <a href="/dashboard" className="sun-menu-link">Dashboard</a>
               <a href="/transit" className="sun-menu-link" onClick={(e) => openTransit(e)}>Trânsitos</a>
               <a href="/generator" className="sun-menu-link" onClick={(e) => { e.preventDefault(); openGenerator(e); }}>Gerador</a>
-              <a href="/settings" className="sun-menu-link">Configurações</a>
+              <a  href="/settings" className="sun-menu-link" onClick={(e) => { e.preventDefault(); setAboutVisible(true); }}>Configuração</a>
           </nav>
+          {isAboutVisible && <AboutSection onClose={() => setAboutVisible(false)} />}
         </div>
       </div>
       {/* In-layout Transit panel (slides in without route change) */}
@@ -227,16 +244,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="debug-overlay" aria-hidden="false">
         <div className="debug-inner">
           <div>Sun menu: <strong>{sunMenuOpen ? 'OPEN' : 'closed'}</strong></div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-            <button onClick={() => { console.log('[Debug] toggle button clicked'); setSunMenuOpen(s => !s); }}>Toggle Sun Menu</button>
-            <button onClick={() => { console.log('[Debug] close'); setSunMenuOpen(false); }}>Close</button>
-          </div>
+          {/* Small helper button to open the sun menu (useful on mobile/debug) */}
+          <button
+            className="mini-sun-open"
+            onClick={() => setSunMenuOpen(true)}
+            title="Abrir menu solar"
+            aria-label="Abrir menu solar"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <circle cx="12" cy="12" r="4" fill="currentColor" />
+            </svg>
+          </button>
         </div>
       </div>
       <div className="dashboard-main">
         <main className="dashboard-content">{children}</main>
       </div>
-
+      <AuthModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialView={modalView}
+      />
       {/* generator-screen removed: we now use left-options + animated sun for the entry flow */}
     </div>
   );

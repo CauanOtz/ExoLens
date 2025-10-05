@@ -1,0 +1,160 @@
+/* --- OVERLAY e MODAL BASE --- */
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(10, 10, 20, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.auth-modal-content {
+  background-color: #181820;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem; /* Reduzir um pouco o padding para 2rem (32px) */
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+  animation: scaleUp 0.3s ease;
+  
+  /* Adicionado para que os elementos filhos se alinhem melhor */
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- BOTÃO DE FECHAR (X) --- */
+.auth-modal-close-btn {
+  position: absolute;
+  top: 15px; /* Manter este top */
+  right: 15px; /* Manter este right */
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1; /* Garante que o 'x' fique bem centralizado no seu próprio espaço */
+  padding: 0; /* Remover qualquer padding padrão do botão */
+  width: 30px; /* Definir uma largura e altura para a área de clique */
+  height: 30px;
+  display: flex; /* Usar flexbox para centralizar o 'x' dentro do botão */
+  justify-content: center;
+  align-items: center;
+  z-index: 10; /* Garantir que fique acima de outros elementos */
+}
+.auth-modal-close-btn:hover { color: white; }
+
+/* --- ABAS (ENTRAR / CRIAR CONTA) --- */
+.view-switcher {
+  display: flex;
+  /* Remover background-color para o seletor principal */
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  /* Centralizar o switcher no topo do modal, com um max-width */
+  width: 100%; /* Ocupa a largura total do modal-content */
+  max-width: 300px; /* Adicionar um limite de largura, se necessário */
+  margin-left: auto; /* Centraliza o bloco do switcher */
+  margin-right: auto; /* Centraliza o bloco do switcher */
+  overflow: hidden; /* Garante que o border-radius funcione */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borda em todo o switcher */
+}
+
+.switch-btn {
+  flex: 1;
+  padding: 12px 10px; /* Ajustar padding vertical para melhor espaçamento */
+  border: none;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  /* Remover border-radius para os botões individuais, ele fica no switcher */
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  font-size: 1rem; /* Garante que o tamanho da fonte seja consistente */
+  display: flex; /* Usar flexbox para centralizar o texto */
+  justify-content: center;
+  align-items: center;
+}
+.switch-btn.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* --- FORMULÁRIO --- */
+.form-container {
+  /* O form-container já deve estar centralizado se o .auth-modal-content for flex column */
+  width: 100%; /* Garantir que o container do formulário ocupe a largura total */
+}
+
+.form-container h2 {
+  text-align: center; /* Manter este. Isso centraliza o texto "Crie sua conta..." */
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem; /* Ajustar o tamanho da fonte se desejar */
+}
+
+.form-group {
+  margin-bottom: 1.2rem; /* Um pouco mais de espaço entre os grupos de input */
+}
+.form-group label {
+  display: block;
+  margin-bottom: 6px; /* Ajustar um pouco a margem inferior para o label */
+  font-size: 0.95rem; /* Levemente maior para melhor legibilidade */
+  color: rgba(255, 255, 255, 0.85); /* Levemente mais claro */
+}
+.form-group input {
+  width: 93%;
+  padding: 14px 15px; /* Aumentar um pouco o padding vertical */
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.forgot-password {
+  display: block;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #a09aed;
+  margin-top: -5px;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+}
+.forgot-password:hover { text-decoration: underline; }
+
+.submit-btn {
+  width: 100%;
+  padding: 16px; /* Aumentar um pouco o padding do botão de submit */
+  background: linear-gradient(-45deg, #000000, #fc9e52, #fc913a, #ff6e2b, #ff6600);
+  /* Make the gradient move by expanding the background area and animating position */
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  background-repeat: no-repeat;
+  animation: Gradient 5s ease infinite;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 1.05rem; /* Levemente maior */
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+.submit-btn:hover {
+  transform: scale(1.05);
+}
+
+@keyframes Gradient {
+    0% {background-position:0% 50%}
+    50% {background-position:100% 50%}
+    100% {background-position:0% 50%}
+}
+
+/* Animações (manter como estão) */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
