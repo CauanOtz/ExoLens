@@ -11,5 +11,15 @@
 .transit-table thead th { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,0.85); }
 .transit-table tbody tr:nth-child(odd) { background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); }
 
+/* Row hover: highlight and reveal actions */
+.transit-table tbody tr:hover { background: linear-gradient(180deg, rgba(11,187,213,0.03), rgba(11,187,213,0.02)); }
+.transit-table tbody tr { transition: background 180ms ease, transform 160ms ease; }
+.transit-table tbody tr:hover { transform: translateY(-2px); }
+
+.row-actions { display: flex; gap: 8px; opacity: 1; transform: none; transition: none; }
+.transit-table tbody tr:hover .row-actions { opacity: 1; transform: none; }
+.row-actions button { padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,0.04); color: #fff; border: 1px solid rgba(255,255,255,0.04); cursor: pointer; font-size: 0.85rem; }
+.row-actions button:hover { background: rgba(11,187,213,0.12); color: #001; }
+
 /* Make the animation feel linear and smooth */
 .transit-page.active .transit-table, .transit-page.active .transit-intro { transition-timing-function: linear; }

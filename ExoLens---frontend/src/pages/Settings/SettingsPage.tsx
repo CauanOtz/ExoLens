@@ -7,8 +7,6 @@ export function SettingsPage() {
 
   return (
     <div className="settings-container">
-      <h2>Configurações</h2>
-      <p>Aqui você pode ajustar as preferências do sistema.</p>
       <button className="about-trigger-button" onClick={() => setAboutVisible(true)}>Sobre o Projeto</button>
       {isAboutVisible && <AboutSection onClose={() => setAboutVisible(false)} />}
     </div>

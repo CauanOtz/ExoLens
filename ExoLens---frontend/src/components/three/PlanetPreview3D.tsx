@@ -3,14 +3,6 @@ import * as THREE from 'three';
 // OrbitControls lives in the examples directory; import with ts-ignore for compatibility
 // @ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import EarthModel from './EarthModel';
-import JupiterModel from './JupiterModel';
-import SunModel from './SunModel';
-import MarsModel from './MarsModel';
-import MercuryModel from './MercuryModel';
-import NeptuneModel from './NeptuneModel';
-import SaturnModel from './SaturnModel';
-const earthIcon = new URL('../../assets/earth.svg', import.meta.url).href;
 
 interface PlanetPreviewProps {
   color?: string;
@@ -21,38 +13,30 @@ interface PlanetPreviewProps {
 export default function PlanetPreview3D({ color = '#c66', radius = 1, composition = 'rocky' }: PlanetPreviewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const [preset, setPreset] = useState<'custom' | 'earth' | 'jupiter' | 'sun' | 'mars' | 'mercury' | 'neptune' | 'saturn'>('custom');
   const [internalColor, setInternalColor] = useState(color);
   const [internalRadius, setInternalRadius] = useState(radius);
   const [internalComposition, setInternalComposition] = useState<typeof composition>(composition);
+  const [overlayPos, setOverlayPos] = useState<{ left: number; top: number }>({ left: 16, top: 16 });
 
   useEffect(() => {
-    // apply preset values
-    if (preset === 'earth') {
-      setInternalColor('#2a66d6');
-      setInternalRadius(1.0);
-      setInternalComposition('rocky');
-    } else {
-      setInternalColor(color);
-      setInternalRadius(radius);
-      setInternalComposition(composition);
-    }
-  }, [preset, color, radius, composition]);
+    // Always follow the passed props for the custom preview
+    setInternalColor(color);
+    setInternalRadius(radius);
+    setInternalComposition(composition);
+  }, [color, radius, composition]);
 
   useEffect(() => {
-    const mount = mountRef.current;
-    // if showing the external Earth model, don't initialize the canvas-based preview
-    if (preset === 'earth') return;
-    if (!mount) return;
+  const mount = mountRef.current;
+  if (!mount) return;
 
   const width = mount.clientWidth || 400;
   const height = mount.clientHeight || 400;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, Math.max(3, radius * 3.5));
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.set(0, 0, Math.max(3, radius * 3.5));
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     rendererRef.current = renderer;
@@ -236,6 +220,33 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
     };
     animate();
 
+    // compute overlay position (place the small preview box nearer to the planet)
+    const computeOverlay = () => {
+      if (!mount) return;
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      const cx = w / 2;
+      const cy = h / 2;
+      // approximate sphere screen radius in pixels using perspective projection
+      const cameraZ = camera.position.z;
+      const fovRad = (camera.fov * Math.PI) / 180;
+      const worldHeightAtZ = 2 * cameraZ * Math.tan(fovRad / 2);
+      const pxPerWorld = h / worldHeightAtZ;
+      const spherePxRadius = internalRadius * pxPerWorld;
+
+  // place overlay to the right of the planet, slightly above center
+  // increase horizontal gap so the overlay sits a bit farther from the sphere
+  const left = Math.round(cx + spherePxRadius + 80);
+      const top = Math.round(cy - spherePxRadius * 0.45);
+      setOverlayPos({ left, top: Math.max(8, top) });
+    };
+
+    // initial compute + responsive observer
+    computeOverlay();
+    const roOverlay = new ResizeObserver(computeOverlay);
+    roOverlay.observe(mount);
+    window.addEventListener('resize', computeOverlay);
+
     const ro = new ResizeObserver(() => {
       if (!mount) return;
       const w = mount.clientWidth;
@@ -248,6 +259,8 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
 
     return () => {
       ro.disconnect();
+      roOverlay.disconnect();
+      window.removeEventListener('resize', computeOverlay);
       cancelAnimationFrame(rafId);
       controls.dispose();
 
@@ -282,80 +295,14 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
       renderer.dispose();
       if (renderer.domElement && mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
-  }, [internalColor, internalRadius, internalComposition, preset]);
+  }, [internalColor, internalRadius, internalComposition]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {preset === 'earth' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <EarthModel modelPath={undefined} distance={12} height={'100%'} controls={true} />
-        </div>
-      ) : preset === 'jupiter' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <JupiterModel distance={12} height={'100%'} controls={true} />
-        </div>
-      ) : preset === 'sun' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <SunModel height={'100%'} controls={true} />
-        </div>
-      ) : preset === 'mars' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <MarsModel distance={12} height={'100%'} controls={true} />
-        </div>
-      ) : preset === 'mercury' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <MercuryModel distance={12} height={'100%'} controls={true} />
-        </div>
-      ) : preset === 'neptune' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <NeptuneModel distance={12} height={'100%'} controls={true} />
-        </div>
-      ) : preset === 'saturn' ? (
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <SaturnModel distance={12} height={'100%'} controls={true} />
-        </div>
-      ) : (
-        <div ref={mountRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
-      )}
-      <div style={{ position: 'absolute', right: 16, top: 16, width: 200, background: 'rgba(18,20,24,0.52)', color: '#fff', padding: '12px', borderRadius: 12, fontSize: 13, backdropFilter: 'blur(8px)', boxShadow: '0 8px 24px rgba(2,6,23,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <img src={earthIcon} alt="Terra" style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(255,255,255,0.02)', padding: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }} />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Ver planetas</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Preview interativo</div>
-          </div>
-        </div>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <button onClick={() => setPreset('earth')} aria-pressed={preset === 'earth'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'earth' ? 'linear-gradient(180deg,#2a66d6,#1e4fb8)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <img src={earthIcon} alt="" style={{ width: 18, height: 18, opacity: 0.98 }} />
-            <span style={{ fontWeight: 600 }}>Terra</span>
-          </button>
-          <button onClick={() => setPreset('jupiter')} aria-pressed={preset === 'jupiter'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'jupiter' ? 'linear-gradient(180deg,#d8a24a,#b87f2a)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#e1b07a,#d38a2f)' }} />
-            <span style={{ fontWeight: 600 }}>Júpiter</span>
-          </button>
-          <button onClick={() => setPreset('sun')} aria-pressed={preset === 'sun'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'sun' ? 'linear-gradient(180deg,#ffd07a,#ffb36b)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 18, background: 'radial-gradient(circle at 30% 30%, #fff7df, #ffd07a 40%, #ffb36b 70%)', boxShadow: '0 6px 18px rgba(255,150,50,0.6)' }} />
-            <span style={{ fontWeight: 600 }}>Sol</span>
-          </button>
-          <button onClick={() => setPreset('mars')} aria-pressed={preset === 'mars'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'mars' ? 'linear-gradient(180deg,#d86b4a,#b84f32)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#d96b4a,#b84f32)' }} />
-            <span style={{ fontWeight: 600 }}>Marte</span>
-          </button>
-          <button onClick={() => setPreset('mercury')} aria-pressed={preset === 'mercury'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'mercury' ? 'linear-gradient(180deg,#cfcfcf,#bdbdbd)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#e6e6e6,#bdbdbd)' }} />
-            <span style={{ fontWeight: 600 }}>Mercúrio</span>
-          </button>
-          <button onClick={() => setPreset('neptune')} aria-pressed={preset === 'neptune'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'neptune' ? 'linear-gradient(180deg,#6fb3ff,#2e88ff)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#8bd0ff,#2e88ff)' }} />
-            <span style={{ fontWeight: 600 }}>Netuno</span>
-          </button>
-          <button onClick={() => setPreset('saturn')} aria-pressed={preset === 'saturn'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'saturn' ? 'linear-gradient(180deg,#e8d6b0,#caa86f)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
-            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#f0e0b8,#caa86f)' }} />
-            <span style={{ fontWeight: 600 }}>Saturno</span>
-          </button>
-          <button onClick={() => setPreset('custom')} aria-pressed={preset === 'custom'} style={{ padding: '8px 10px', borderRadius: 8, background: preset === 'custom' ? 'rgba(255,255,255,0.04)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>Custom</button>
-        </div>
+      <div ref={mountRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
+      <div style={{ position: 'absolute', left: overlayPos.left, top: overlayPos.top, minWidth: 140, background: 'rgba(18,20,24,0.52)', color: '#fff', padding: '8px 10px', borderRadius: 10, fontSize: 13, backdropFilter: 'blur(6px)', boxShadow: '0 8px 24px rgba(2,6,23,0.6)', border: '1px solid rgba(255,255,255,0.04)', pointerEvents: 'auto', transition: 'left 240ms ease, top 240ms ease' }}>
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>Custom preview</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>{internalComposition} • r {internalRadius}</div>
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
 import SunModel from '../components/three/SunModel';
-import { AboutSection } from '../pages/Settings/AboutSection';
+import SolarSystemShowcase from '../components/three/SolarSystemShowcase';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
 // lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
@@ -16,7 +16,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [modalView, setModalView] = useState<'login' | 'signup'>('login');
   const openAuthModal = (view: 'login' | 'signup') => { setModalView(view); setIsModalOpen(true); };
   const [generatorOpen, setGeneratorOpen] = useState(false);
-  const [isAboutVisible, setAboutVisible] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const closeTimeoutRef = useRef<number | null>(null);
@@ -26,7 +25,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [clickFlash, setClickFlash] = useState(false);
   const [transitOpen, setTransitOpen] = useState(false);
   const [transitActive, setTransitActive] = useState(false);
+  const [solarShowcaseOpen, setSolarShowcaseOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onOpen = () => setGeneratorOpen(true);
@@ -111,7 +112,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className={`dashboard-layout sun-phase-${sunPhase} ${generatorOpen ? 'generator-open' : ''} ${isClosing ? 'generator-closing' : ''} ${sunMenuOpen ? 'sun-menu-open' : ''} ${transitOpen ? 'transit-open' : ''} ${transitActive ? 'transit-active' : ''}`}>
       <header className="dashboard-header">
-        <img src={new URL('../assets/NOISE/NoiseLogo.png', import.meta.url).href} alt="NOISE Logo" className="header-logo" />
+        <img
+          src={new URL('../assets/NOISE/NoiseLogo.png', import.meta.url).href}
+          alt="NOISE Logo"
+          className="header-logo"
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            // navigate to home/dashboard and reset layout panels
+            navigate('/');
+            setGeneratorOpen(false);
+            setLeftOpen(false);
+            setTransitOpen(false);
+            setTransitActive(false);
+            setSunMenuOpen(false);
+            setSunPhase('dashboard');
+          }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }}
+        />
       </header>
        <nav className="auth-links">
         <button className="auth-link" onClick={() => openAuthModal('login')}>
@@ -130,10 +148,42 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <h1 className="hero-title">ExoLens</h1>
         <p className="hero-subtitle">Leitor e gerador de exoplanetas — explore e crie mundos com base na composição planetária.</p>
         <div className="planet-context-chip">
-          {sunPhase === 'dashboard' && <span>Visão Geral Solar</span>}
-          {sunPhase === 'transit' && <span>Observando Trânsitos</span>}
-          {sunPhase === 'generator' && <span>Gerando Exoplaneta</span>}
-          {sunPhase === 'settings' && <span>Ajustes do Sistema</span>}
+            <>
+              <button
+                className="planet-context-action"
+                onClick={() => { openTransit(); setSunPhase('transit'); }}
+                aria-label="Trânsitos"
+                title="Trânsitos"
+              >
+                <span>Trânsitos</span>
+              </button>
+              <button
+                className="planet-context-action"
+                onClick={() => { openGenerator(); setSunPhase('generator'); }}
+                aria-label="Gerador"
+                title="Gerador"
+              >
+                <span>Gerador</span>
+              </button>
+              <button
+                className="planet-context-action"
+                onClick={() => {
+                  // open the Solar System showcase in-layout and animate the sun to the top-left
+                  setSolarShowcaseOpen(true);
+                  setSunPhase('settings');
+                  // close other panels
+                  setGeneratorOpen(false);
+                  setTransitOpen(false);
+                  setLeftOpen(false);
+                  setSunMenuOpen(false);
+                }}
+                aria-label="Mostrar Sistema Solar"
+                title="Sistema Solar"
+              >
+                <span>Sistema Solar</span>
+              </button>
+            </>
+          
         </div>
       </div>
       <div
@@ -170,22 +220,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
         {clickFlash && <div className="sun-click-flash" aria-hidden />}
   <SunModel autoRotate={true} autoRotateSpeed={0.045} />
+
       </div>
-      <div className={`sun-sections-menu ${sunMenuOpen ? 'open' : ''}`} aria-hidden={!sunMenuOpen}>
-        <div className="sun-sections-inner">
-          <div className="sun-menu-header">
-            <span className="sun-menu-title">Seções</span>
-            <button className="sun-menu-close" onClick={() => setSunMenuOpen(false)} aria-label="Fechar menu">×</button>
-          </div>
-          <nav className="sun-menu-nav">
-              <a href="/dashboard" className="sun-menu-link">Dashboard</a>
-              <a href="/transit" className="sun-menu-link" onClick={(e) => openTransit(e)}>Trânsitos</a>
-              <a href="/generator" className="sun-menu-link" onClick={(e) => { e.preventDefault(); openGenerator(e); }}>Gerador</a>
-              <a  href="/settings" className="sun-menu-link" onClick={(e) => { e.preventDefault(); setAboutVisible(true); }}>Configuração</a>
-          </nav>
-          {isAboutVisible && <AboutSection onClose={() => setAboutVisible(false)} />}
+      {/* Solar showcase panel (appears when settings/Sistema Solar is opened) */}
+      {solarShowcaseOpen && (
+        <div className="solar-showcase-panel" role="dialog" aria-label="Sistema Solar Showcase">
+          <button className="solar-showcase-close" onClick={() => setSolarShowcaseOpen(false)} aria-label="Fechar">×</button>
+          <SolarSystemShowcase onSelect={(p) => { console.log('Solar selected', p); /* optional: wire to generator */ }} />
         </div>
-      </div>
+      )}
       {/* In-layout Transit panel (slides in without route change) */}
       <div className={`transit-panel ${transitOpen ? 'open' : ''} ${transitActive ? 'active' : ''}`} aria-hidden={!transitOpen}>
         <div className="transit-panel-inner">
@@ -240,23 +283,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </Suspense>
         </div>
       )}
-      {/* Debug overlay: visible control to toggle sun menu and show state (temporary) */}
-      <div className="debug-overlay" aria-hidden="false">
-        <div className="debug-inner">
-          <div>Sun menu: <strong>{sunMenuOpen ? 'OPEN' : 'closed'}</strong></div>
-          {/* Small helper button to open the sun menu (useful on mobile/debug) */}
-          <button
-            className="mini-sun-open"
-            onClick={() => setSunMenuOpen(true)}
-            title="Abrir menu solar"
-            aria-label="Abrir menu solar"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <circle cx="12" cy="12" r="4" fill="currentColor" />
-            </svg>
-          </button>
-        </div>
-      </div>
       <div className="dashboard-main">
         <main className="dashboard-content">{children}</main>
       </div>

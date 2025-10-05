@@ -1,5 +1,5 @@
 // src/pages/Settings/AboutSection.tsx
-
+import './SettingsPage.css';
 import { createPortal } from 'react-dom';
 import { TeamMemberCard } from '../../layouts/TeamMemberCard'; // Ajuste o caminho para o layout
 // Importe seu vídeo e imagens (usando arquivos presentes em src/assets)
