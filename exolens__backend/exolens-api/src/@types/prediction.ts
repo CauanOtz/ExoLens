@@ -5,6 +5,7 @@ import { MassUnit, RadiusUnit, TimeUnit, TemperatureUnit } from './units';
 //parametros da estrela
 export type StarParams = {
   effective_temperature_value: number;
+  effective_temperature_error: number;
   effective_temperature_unit: TemperatureUnit;
   mass_value: number;
   mass_error: number;
@@ -30,10 +31,10 @@ export type SignalParams = {
   impact_parameter_error: number;
   orbital_period_value: number;
   orbital_period_error: number;
-  orbital_period_unit: string;
+  orbital_period_unit: TimeUnit;
   transit_duration_value: number;
   transit_duration_error: number;
-  transit_duration_unit: string;
+  transit_duration_unit: TimeUnit;
   transit_depth_value: number;
   transit_depth_error: number;
 

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/UserService';
 
 export class UserController {
-  // O controller agora recebe o serviço em seu construtor
+  
   constructor(private userService: UserService) {}
 
   async register(req: Request, res: Response, next: NextFunction) {

@@ -1,44 +1,52 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AppError } from '../../../core/errors/AppError';
+import { AppError, UnauthorizedError } from '../../../core/errors/AppError';
 
-class UnauthorizedError extends AppError {
-  constructor() {
-    super('Token JWT inválido ou não fornecido.', 401);
-  }
-}
-
-interface ITokenPayload {
+interface TokenPayload {
   id: string;
+  iat: number;
+  exp: number;
 }
 
-export const authMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const authHeader = req.headers.authorization;
+function getTokenFromHeaders(req: Request): string | null {
+  const { authorization } = req.headers;
 
-  if (!authHeader) {
-    throw new UnauthorizedError();
+  if (!authorization) {
+    return null;
   }
 
-  const [, token] = authHeader.split(' ');
+  const parts = authorization.split(' ');
+
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return null;
+  }
+
+  return parts[1] || null;
+}
+
+export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const token = getTokenFromHeaders(req);
 
   if (!token) {
-    throw new UnauthorizedError();
+    return next(new UnauthorizedError('Token not provided or malformed.'));
   }
+
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as ITokenPayload;
+    const jwtSecret = process.env.JWT_SECRET;
 
-    req.user = {
-      id: decoded.id,
-    };
+    if (!jwtSecret) {
+      console.error('JWT_SECRET is not defined in environment variables.');
+      return next(new AppError('Internal server configuration error.', 500));
+    }
+
+    const decoded = jwt.verify(token, jwtSecret);
+    const { id } = decoded as TokenPayload;
+
+    req.user = { id };
 
     return next();
-  } catch (err) {
-
-    throw new UnauthorizedError();
+  } catch (error) {
+    return next(new UnauthorizedError('Invalid token.'));
   }
-};
+}

@@ -20,17 +20,17 @@ const userController = new UserController(new UserService(userRepository));
  *       properties:
  *         name:
  *           type: string
- *           description: Nome do usuário.
+ *           description: The user's name.
  *           example: John Doe
  *         email:
  *           type: string
  *           format: email
- *           description: E-mail para login.
+ *           description: The user's email for login.
  *           example: johndoe@example.com
  *         password:
  *           type: string
  *           format: password
- *           description: Senha com no mínimo 6 caracteres.
+ *           description: Password with at least 6 characters.
  *           example: "123456"
  *     UserResponse:
  *       type: object
@@ -53,7 +53,7 @@ const userController = new UserController(new UserService(userRepository));
  *           $ref: '#/components/schemas/UserResponse'
  *         token:
  *           type: string
- *           description: Token JWT para autenticação.
+ *           description: JWT token for authentication.
  *           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  */
 
@@ -61,7 +61,7 @@ const userController = new UserController(new UserService(userRepository));
  * @swagger
  * /api/users/register:
  *   post:
- *     summary: Registra um novo usuário
+ *     summary: Register a new user
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -71,13 +71,13 @@ const userController = new UserController(new UserService(userRepository));
  *             $ref: '#/components/schemas/RegisterUserInput'
  *     responses:
  *       201:
- *         description: Usuário criado com sucesso.
+ *         description: User created successfully.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UserResponse'
  *       409:
- *         description: E-mail já está em uso.
+ *         description: Email is already in use.
  */
 userRoutes.post('/register', (req: Request, res: Response, next: NextFunction) => userController.register(req, res, next));
 
@@ -87,7 +87,7 @@ userRoutes.post('/register', (req: Request, res: Response, next: NextFunction) =
  * @swagger
  * /api/users/login:
  *   post:
- *     summary: Autentica um usuário e retorna um token JWT
+ *     summary: Authenticates a user and returns a JWT token
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -109,13 +109,13 @@ userRoutes.post('/register', (req: Request, res: Response, next: NextFunction) =
  *                 example: "123456"
  *     responses:
  *       200:
- *         description: Login bem-sucedido.
+ *         description: Login successful.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/LoginResponse'
  *       401:
- *         description: E-mail ou senha inválidos.
+ *         description: Invalid email or password.
  */
 userRoutes.post('/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
 

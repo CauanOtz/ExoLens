@@ -24,3 +24,8 @@ export class NotFoundError extends AppError {
         super(`${resourceName} not found.`, 404);
     }
 }
+export class UnauthorizedError extends AppError {
+    constructor(message: string = 'Unauthorized') {
+        super(message, 401);
+    }
+}
