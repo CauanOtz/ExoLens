@@ -54,25 +54,40 @@ export default function PlanetBuilderPanel({ onClose }: { onClose: () => void })
     <div className="generator-panel">
       <div className="generator-left">
         <div className="generator-left-header">
-          <h3>Gerador de Planeta</h3>
-          <button onClick={onClose} aria-label="Fechar">×</button>
+          <h3 style={{ margin: 0 }}>Gerador de Planeta</h3>
+          <button onClick={onClose} aria-label="Fechar" style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 22 }}>×</button>
         </div>
         <div className="drop-area" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
-          <p>Arraste um arquivo JSON ou CSV aqui</p>
-          {error && <div className="drop-error">{error}</div>}
+          <p style={{ margin: 0 }}>Arraste um arquivo JSON ou CSV aqui</p>
+          {error && <div className="drop-error" style={{ marginTop: 8 }}>{error}</div>}
         </div>
-        <div className="generator-fields">
-          <label>Nome<input value={planet.name} onChange={e => setPlanet(p => ({ ...p, name: e.target.value }))} /></label>
-          <label>Massa<input type="number" value={planet.mass ?? 1} onChange={e => setPlanet(p => ({ ...p, mass: Number(e.target.value) }))} /></label>
-          <label>Raio<input type="number" step="0.1" value={planet.radius ?? 1} onChange={e => setPlanet(p => ({ ...p, radius: Number(e.target.value) }))} /></label>
-            <label>Cor<input value={planet.color} onChange={e => setPlanet(p => ({ ...p, color: e.target.value }))} /></label>
-            <label>Composição
-              <select value={planet.composition || 'rocky'} onChange={e => setPlanet(p => ({ ...p, composition: e.target.value as any }))}>
-                <option value="rocky">Rochoso</option>
-                <option value="gaseous">Gasoso</option>
-                <option value="icy">Gelado</option>
-              </select>
-            </label>
+        <div className="generator-fields" style={{ display: 'grid', gap: 12, padding: '12px 0' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, color: '#ddd', marginBottom: 6 }}>Nome</label>
+            <input value={planet.name} onChange={e => setPlanet(p => ({ ...p, name: e.target.value }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.18)', color: '#fff' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#ddd', marginBottom: 6 }}>Massa</label>
+              <input type="number" value={planet.mass ?? 1} onChange={e => setPlanet(p => ({ ...p, mass: Number(e.target.value) }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.18)', color: '#fff' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#ddd', marginBottom: 6 }}>Raio</label>
+              <input type="number" step="0.1" value={planet.radius ?? 1} onChange={e => setPlanet(p => ({ ...p, radius: Number(e.target.value) }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.18)', color: '#fff' }} />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, color: '#ddd', marginBottom: 6 }}>Cor</label>
+            <input value={planet.color} onChange={e => setPlanet(p => ({ ...p, color: e.target.value }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.18)', color: '#fff' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, color: '#ddd', marginBottom: 6 }}>Composição</label>
+            <select value={planet.composition || 'rocky'} onChange={e => setPlanet(p => ({ ...p, composition: e.target.value as any }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.18)', color: '#fff' }}>
+              <option value="rocky">Rochoso</option>
+              <option value="gaseous">Gasoso</option>
+              <option value="icy">Gelado</option>
+            </select>
+          </div>
         </div>
       </div>
       <div className="generator-right">

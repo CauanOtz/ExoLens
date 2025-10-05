@@ -669,7 +669,7 @@
 .generator-fields label { display:flex; flex-direction:column; gap:6px; color:#fff; font-size:0.9rem; }
 .generator-fields input { padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:#fff; }
 .generator-right { flex:1; display:flex; align-items:center; justify-content:center; padding:28px; }
-.preview-shell { width: min(720px, 66%); height: min(720px, 70%); background: linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.05)); border-radius:14px; overflow:hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.6); }
+.preview-shell { width: min(720px, 66%); height: min(720px, 70%); border-radius:14px; overflow:hidden; }
 
 /* Hide everything else when generator is open (use generator-open class on root) */
 .dashboard-layout.generator-open .space-bg,

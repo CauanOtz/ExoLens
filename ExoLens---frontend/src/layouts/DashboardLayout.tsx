@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
 import SunModel from '../components/three/SunModel';
+import EarthModel from '../components/three/EarthModel';
 import PlanetBuilderPanel from '../components/three/PlanetBuilderPanel';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
