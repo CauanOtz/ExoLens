@@ -27,8 +27,11 @@
     radial-gradient(2px 2px at 90% 60%, white, transparent),
     radial-gradient(1px 1px at 33% 85%, white, transparent),
     radial-gradient(1px 1px at 15% 60%, white, transparent);
-  background-size: 200% 200%, 250% 250%, 300% 300%, 180% 180%, 220% 220%, 270% 270%, 190% 190%;
+  background-size: contain;
   background-position: 0% 0%;
+  /* nebula / subtle extra layer - use the project's space.svg which includes subtle nebula ellipses */
+  /* background-image: url('../assets/space.jpg'), none, none, none, none, none, none; */
+  background-blend-mode: screen, normal, normal, normal, normal, normal, normal;
   animation: starfield 200s linear infinite;
 }
 
@@ -37,10 +40,23 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(ellipse at 30% 40%, rgba(138, 43, 226, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 60%, rgba(75, 0, 130, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(25, 25, 112, 0.07) 0%, transparent 60%);
+    radial-gradient(ellipse at 30% 40%, rgba(56, 18, 92, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(41, 0, 70, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(0, 0, 0, 0.671) 0%, transparent 60%);
   animation: nebulaDrift 60s ease-in-out infinite alternate;
+}
+
+/* nebula image inserted via JS/TSX for reliable resolution with Vite */
+.space-bg .nebula-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.22;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes starfield {
@@ -87,6 +103,188 @@
   display: block;
 }
 
+.hero-overlay {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+  max-width: 80ch;
+}
+
+.hero-overlay {
+  padding: 1.25rem 1.75rem;
+  border-radius: 14px;
+}
+
+.hero-title {
+  margin: 0 0 0.5rem 0;
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  /* warm gradient with clipped text for a luminous look */
+  background: linear-gradient(90deg, #fff8e6 0%, #ffd07a 55%, #ffb36b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  display: inline-block;
+  text-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(255,200,80,0.05);
+}
+
+/* glowing halo under the title */
+.hero-title::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -40%);
+  width: 160%;
+  height: 44%;
+  background: radial-gradient(circle at center, rgba(255,175,60,0.14), transparent 40%);
+  filter: blur(22px);
+  z-index: -1;
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: heroPulse 6s ease-in-out infinite;
+}
+
+.hero-subtitle {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: rgba(248,250,252,0.95);
+  max-width: 60ch;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  opacity: 0.96;
+  letter-spacing: 0.02em;
+}
+
+.space-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.9), transparent), radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.85), transparent), radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.8), transparent);
+  background-size: 600px 600px, 800px 800px, 900px 900px;
+  animation: particlesDrift 80s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes particlesDrift {
+  from { transform: translateY(0) translateX(0); opacity: 1 }
+  50% { transform: translateY(-30px) translateX(20px); opacity: 0.9 }
+  to { transform: translateY(0) translateX(0); opacity: 1 }
+}
+
+/* --- CSS-only starfield layers and twinkle effects --- */
+/* small dense stars layer (fast twinkle) */
+.space-bg .stars-small {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255,255,255,0.95) 0.8px, transparent 1px),
+    radial-gradient(circle at 28% 36%, rgba(255,255,255,0.92) 0.9px, transparent 1px),
+    radial-gradient(circle at 44% 62%, rgba(255,255,255,0.9) 0.7px, transparent 1px),
+    radial-gradient(circle at 68% 24%, rgba(255,255,255,0.88) 0.8px, transparent 1px),
+    radial-gradient(circle at 82% 72%, rgba(255,255,255,0.9) 0.9px, transparent 1px);
+  background-size: 1200px 1200px, 1400px 1400px, 1600px 1600px, 1000px 1000px, 1400px 1400px;
+  animation: starsDrift 120s linear infinite, starsTwinkleSmall 3.6s infinite;
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+/* larger, sparser stars that pulse slowly */
+.space-bg .stars-large {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(255,245,220,0.98) 0px, rgba(255,245,220,0.95) 1.8px, transparent 3px),
+    radial-gradient(circle at 52% 42%, rgba(255,240,200,0.95) 0px, rgba(255,240,200,0.9) 2.2px, transparent 4px),
+    radial-gradient(circle at 78% 78%, rgba(255,235,180,0.94) 0px, rgba(255,235,180,0.9) 1.6px, transparent 3px);
+  background-size: 1800px 1800px, 1200px 1200px, 1400px 1400px;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  animation: starsDriftSlow 200s linear infinite, starsPulse 6s ease-in-out infinite;
+}
+
+
+
+/* Twinkle small stars via opacity jitter */
+@keyframes starsTwinkleSmall {
+  0% { opacity: 0.9 }
+  25% { opacity: 0.6 }
+  50% { opacity: 1 }
+  75% { opacity: 0.7 }
+  100% { opacity: 0.9 }
+}
+
+@keyframes starsPulse {
+  0% { transform: scale(1); opacity: 0.9 }
+  50% { transform: scale(1.08); opacity: 1 }
+  100% { transform: scale(1); opacity: 0.9 }
+}
+
+@keyframes starsDrift {
+  from { background-position: 0% 0%, 10% 10%, 20% 20%, 30% 30%, 40% 40%; }
+  to { background-position: 100% 100%, 90% 90%, 80% 80%, 70% 70%, 60% 60%; }
+}
+
+@keyframes starsDriftSlow {
+  from { background-position: 0% 0%, 10% 10%, 20% 20%; }
+  to { background-position: 100% 100%, 90% 90%, 80% 80%; }
+}
+
+/* subtle film grain overlay to add depth */
+.space-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(0,0,0,0.02), rgba(0,0,0,0.02));
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+}
+
+.shooting-star {
+  position: absolute;
+  width: 2px;
+  height: 80px;
+  right: -100px;
+  top: 20%;
+  transform: rotate(-18deg) translateX(0);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.0));
+  opacity: 0;
+  filter: blur(0.6px);
+  pointer-events: none;
+  animation: shoot 6s linear infinite;
+}
+
+@keyframes shoot {
+  0% { right: -180px; opacity: 0 }
+  5% { opacity: 1 }
+  30% { right: 60%; opacity: 0.9 }
+  45% { right: 40%; opacity: 0 }
+  100% { right: -180px; opacity: 0 }
+}
+
+@keyframes heroPulse {
+  0% { transform: translate(-50%, -40%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%, -44%) scale(1.08); opacity: 1; }
+  100% { transform: translate(-50%, -40%) scale(1); opacity: 0.8; }
+}
+
 @keyframes sunGlow {
   0%, 100% {
     filter: drop-shadow(0 0 180px rgba(255, 180, 50, 0.9))
@@ -102,4 +300,366 @@
 
 /* content should be above background and sun */
 .dashboard-main, .dashboard-content { position: relative; z-index: 2; }
+
+/* when generator opens, add subtle movement to the hero and move sun upward */
+.dashboard-layout.generator-open .sun-container-3d {
+  transform: translateY(-24vh) translateX(18%) scale(0.95);
+  transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+}
+
+.dashboard-layout.generator-open .hero-overlay {
+  transform: translate(-50%, -70%);
+  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+}
+
+.dashboard-layout.generator-open .sidebar {
+  transform: translateX(-180px);
+  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+}
+
+.dashboard-layout.generator-closing .sun-container-3d {
+  transform: translateX(-50%);
+  bottom: -90vh; 
+  transition: transform 900ms cubic-bezier(.2,.9,.2,1), bottom 900ms cubic-bezier(.2,.9,.2,1);
+}
+.dashboard-layout.generator-closing .hero-overlay {
+  transform: translate(-50%, -50%); 
+  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+}
+.dashboard-layout.generator-closing .sidebar {
+  transform: translateX(0); 
+  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* ensure left-options closing visual is out */
+.left-options { transition: left 750ms cubic-bezier(.2,.9,.2,1); }
+.left-options.open { left: 24px; }
+.left-options:not(.open) { left: -320px; }
+
+/* Left options panel slides in from left when generator opens */
+.left-options {
+  position: fixed;
+  left: -320px;
+  top: 18vh;
+  width: 280px;
+  z-index: 45;
+  transition: left 900ms cubic-bezier(.2,.9,.2,1);
+}
+.left-options {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 10px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  padding: 14px;
+  border-radius: 14px;
+  backdrop-filter: blur(8px) saturate(130%);
+}
+.left-options.open { left: 24px; }
+.left-options-nav { display:flex; flex-direction:column; gap:12px; }
+.option-btn {
+  display:inline-flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  color: #f8f6f1;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.6), inset 0 -1px 0 rgba(255,255,255,0.02);
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+ .option-btn:hover { transform: translateX(6px) scale(1.02); box-shadow: 0 18px 40px rgba(2,6,23,0.65), 0 1px 0 rgba(255,255,255,0.02); border-color: rgba(255,200,120,0.28); }
+
+.option-icon { color: rgba(255,200,120,0.95); opacity: 0.95; }
+
+/* star-shaped back button */
+.back-star {
+  width: 56px;
+  height: 56px;
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  color: #ffd07a;
+  border-radius: 50%;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.back-star svg { width: 24px; height: 24px; }
+.back-star:hover { transform: scale(1.06); transition: transform 160ms ease; filter: drop-shadow(0 10px 30px rgba(255,160,60,0.22)); }
+
+/* rotate the hero background slightly during transition */
+.dashboard-layout.generator-open .space-bg {
+  transform-origin: center;
+  animation: rotateSlow 1s linear 1;
+}
+
+/* lens flare near the sun area */
+.lens-flare {
+  position: absolute;
+  left: 50%;
+  bottom: 18vh;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 520px;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(circle at 40% 40%, rgba(255,200,100,0.08), transparent 20%), radial-gradient(circle at 60% 60%, rgba(255,160,60,0.04), transparent 40%);
+  filter: blur(28px) saturate(120%);
+}
+
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(6deg); }
+}
+
+/* slide-right class applied to sidebar items when opening generator */
+.planet-btn.slide-right {
+  transform: translateX(28px);
+  transition: transform 700ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* Drag sidebar buttons out of the viewport when generator or sun menu is active */
+.dashboard-layout.generator-open .sidebar .planet-btn,
+.dashboard-layout.sun-menu-open .sidebar .planet-btn {
+  transform: translateX(-260px) !important; /* push far left off-screen */
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+/* Also when transit panel opens - drag the planets out with a linear motion */
+.dashboard-layout.transit-open .sidebar .planet-btn {
+  transform: translateX(-300px) !important;
+  opacity: 0.02;
+  pointer-events: none;
+  transition-timing-function: linear;
+}
+
+/* Transit panel (in-layout) */
+.transit-panel { position: fixed; right: 36px; top: 12vh; width: min(64%, 980px); max-width: 92vw; height: 72vh; z-index: 60; pointer-events: none; transform: translateX(12px) translateY(6px) scale(.995); opacity: 0; transition: transform 520ms linear, opacity 520ms linear; }
+.transit-panel.open { pointer-events: auto; }
+.transit-panel.active { transform: translateX(0) translateY(0) scale(1); opacity: 1; }
+.transit-panel-inner { background: linear-gradient(180deg, rgba(10,12,16,0.85), rgba(14,16,20,0.78)); border-radius: 14px; padding: 18px; box-shadow: 0 20px 80px rgba(4,6,10,0.6); backdrop-filter: blur(8px) saturate(120%); height: 100%; overflow:auto; }
+.transit-close { position:absolute; right: 12px; top: 8px; z-index: 68; background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); width:36px; height:36px; border-radius:10px; cursor:pointer; }
+
+
+/* Staggered transitions so buttons appear to be dragged out sequentially */
+.sidebar .planet-nav .planet-btn { transition: transform 640ms cubic-bezier(.22,.95,.25,1), opacity 420ms ease; }
+.sidebar .planet-nav .planet-btn:nth-child(1) { transition-delay: 0ms; }
+.sidebar .planet-nav .planet-btn:nth-child(2) { transition-delay: 80ms; }
+.sidebar .planet-nav .planet-btn:nth-child(3) { transition-delay: 140ms; }
+.sidebar .planet-nav .planet-btn:nth-child(4) { transition-delay: 200ms; }
+.sidebar .planet-nav .planet-btn:nth-child(5) { transition-delay: 260ms; }
+.sidebar .planet-nav .planet-btn:nth-child(6) { transition-delay: 320ms; }
+
+/* Ensure they return cleanly when closed */
+.dashboard-layout:not(.generator-open):not(.sun-menu-open) .sidebar .planet-btn { transform: translateX(0) !important; opacity: 1; pointer-events: auto; }
+
+/* generator screen slides up from bottom */
+/* generator-screen removed: left-options + animated sun will be used for entry flow */
+
+
+.dashboard-layout {
+  --accent-gold: #ffc670;
+  --accent-plasma: #ff8b5a;
+  --accent-electric: #6f9bff;
+  --accent-violet: #8b6fff;
+  --sun-transition: 1100ms cubic-bezier(.22,.95,.25,1);
+}
+
+.sun-container-3d { transition: transform var(--sun-transition), bottom var(--sun-transition), filter 1400ms ease; }
+
+.dashboard-layout.sun-phase-dashboard .sun-container-3d { transform: translateX(-50%) translateY(0) scale(1); }
+.dashboard-layout.sun-phase-transit .sun-container-3d { transform: translateX(-42%) translateY(-10vh) scale(.93) rotateZ(1.6deg); }
+.dashboard-layout.sun-phase-generator .sun-container-3d { transform: translateX(-35%) translateY(-18vh) scale(.90) rotateZ(3.2deg); }
+.dashboard-layout.sun-phase-settings .sun-container-3d { transform: translateX(-55%) translateY(-6vh) scale(.88) rotateZ(-1.8deg); }
+
+.route-pulse { animation: routePulse 880ms cubic-bezier(.35,.9,.3,1); }
+@keyframes routePulse { 0% { opacity:0; transform: translate(-50%,-54%) scale(.94);} 55% { opacity:1;} 100% { opacity:1; transform: translate(-50%,-50%) scale(1);} }
+
+.planet-context-chip { margin-top:1rem; display:inline-flex; gap:6px; padding:6px 14px; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; border-radius:24px; background:linear-gradient(90deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.14); box-shadow:0 4px 14px -2px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05) inset; }
+.planet-context-chip span { background:linear-gradient(90deg,var(--accent-gold),var(--accent-plasma)); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:600; }
+
+.dashboard-layout.sun-phase-generator .hero-title { text-shadow:0 0 22px rgba(255,150,80,.35),0 0 60px rgba(255,120,60,.25); }
+.dashboard-layout.sun-phase-transit .hero-title { text-shadow:0 0 22px rgba(140,190,255,.35),0 0 60px rgba(110,155,255,.25); }
+.dashboard-layout.sun-phase-settings .hero-title { text-shadow:0 0 22px rgba(200,160,255,.35),0 0 60px rgba(160,120,255,.25); }
+
+.dashboard-layout.sun-phase-transit .space-bg::before { filter:hue-rotate(18deg) saturate(1.25); }
+.dashboard-layout.sun-phase-generator .space-bg::before { filter:hue-rotate(-15deg) saturate(1.35); }
+.dashboard-layout.sun-phase-settings .space-bg::before { filter:hue-rotate(60deg) saturate(1.15); }
+
+.dashboard-layout.sun-phase-generator .left-options { box-shadow:0 12px 48px -6px rgba(255,130,70,.35),0 0 0 1px rgba(255,180,120,.08) inset; }
+
+.sidebar .planet-btn { position:relative; overflow:visible; }
+.sidebar .planet-btn .planet-sphere { filter: drop-shadow(0 0 4px rgba(255,255,255,0.15)) drop-shadow(0 0 18px rgba(255,200,120,0.08)); transition: transform .5s cubic-bezier(.25,.9,.25,1), filter .6s ease; }
+.sidebar .planet-btn:hover .planet-sphere { transform: scale(1.18) rotateZ(3deg); filter: drop-shadow(0 0 10px rgba(255,210,140,0.5)) drop-shadow(0 0 25px rgba(255,150,70,0.35)); }
+.sidebar .planet-btn.active .planet-sphere { transform: scale(1.22); }
+
+.sidebar .planet-btn .planet-label { position:relative; }
+.sidebar .planet-btn .planet-label::after { content:''; position:absolute; left:0; bottom:-4px; height:2px; width:0; background:linear-gradient(90deg,var(--accent-electric),transparent); transition:width .6s cubic-bezier(.25,.9,.25,1); border-radius:2px; }
+.sidebar .planet-btn:hover .planet-label::after, .sidebar .planet-btn.active .planet-label::after { width:100%; }
+
+.hero-title { background:none !important; -webkit-background-clip:initial !important; background-clip:initial !important; color:#fff !important; }
+
+/* ================= Sun Click -> Floating Sections Menu ================= */
+.sun-hit-target { position:absolute; inset:0; background:transparent; border:none; cursor:pointer; pointer-events:auto; z-index:3; }
+.sun-hit-target:focus-visible { outline:2px solid rgba(255,200,120,0.8); border-radius:50%; }
+
+/* debugging visual to confirm clicks reach React handlers */
+.sun-hit-target { transition: box-shadow 180ms ease, transform 180ms ease; }
+.sun-hit-target:hover { box-shadow: 0 0 0 3px rgba(255,200,120,0.06), inset 0 0 40px rgba(255,200,120,0.02); border-radius: 50%; }
+.sun-hit-target:active { transform: scale(.996); }
+.sun-click-flash { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 36%; height: 36%; border-radius:50%; background: radial-gradient(circle, rgba(255,210,120,0.18), rgba(255,160,70,0.08) 45%, transparent 60%); z-index:7; pointer-events:none; animation: flashPulse 620ms ease-out; }
+@keyframes flashPulse { 0% { transform: translate(-50%,-50%) scale(.92); opacity:1; } 100% { transform: translate(-50%,-50%) scale(1.07); opacity:0; } }
+
+/* Shift the sun to the right creating space on left */
+.dashboard-layout.sun-menu-open .sun-container-3d { transform: translateX(-10%) translateY(-15vh) scale(.92) rotateZ(4deg); bottom:-70vh; }
+
+/* stronger class applied directly to the container for deterministic transform */
+.sun-container-3d.shift-right { transform: translateX(12%) translateY(-10vh) scale(.92) rotateZ(2.6deg) !important; bottom: -70vh !important; transition: transform 780ms cubic-bezier(.22,.95,.25,1) !important; }
+
+/* Floating menu container */
+.sun-sections-menu { position:fixed; left:36px; top:50%; transform:translateY(-50%) translateX(-40px); opacity:0; pointer-events:none; z-index:5; width:280px; max-width:32vw; transition: transform 700ms cubic-bezier(.22,.95,.25,1), opacity 620ms ease; }
+.sun-sections-menu.open { transform:translateY(-50%) translateX(0); opacity:1; pointer-events:auto; }
+.sun-sections-inner { position:relative; display:flex; flex-direction:column; gap:18px; padding:28px 26px 30px; border-radius:28px; background:linear-gradient(160deg, rgba(18,24,33,0.78) 0%, rgba(12,16,22,0.65) 55%, rgba(18,24,33,0.55) 100%); backdrop-filter:blur(18px) saturate(140%); box-shadow:0 18px 60px -10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset, 0 0 0 1px rgba(255,165,90,0.12); animation: menuFloatIn 900ms cubic-bezier(.22,.95,.25,1); }
+
+@keyframes menuFloatIn { 0% { transform:translateY(14px) scale(.96); opacity:0; } 60% { opacity:1; } 100% { transform:translateY(0) scale(1); opacity:1; } }
+
+.sun-menu-header { display:flex; align-items:center; justify-content:space-between; }
+.sun-menu-title { font-size:.95rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:linear-gradient(90deg,var(--accent-gold), var(--accent-plasma)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.sun-menu-close { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); width:32px; height:32px; border-radius:10px; cursor:pointer; color:#fff; font-size:1.1rem; line-height:1; display:flex; align-items:center; justify-content:center; transition:background 200ms ease, transform 200ms ease; }
+.sun-menu-close:hover { background:rgba(255,255,255,0.14); transform:translateY(-2px); }
+.sun-menu-close:active { transform:translateY(0); }
+.sun-menu-nav { display:flex; flex-direction:column; gap:10px; }
+.sun-menu-link { position:relative; padding:14px 16px 14px 18px; border-radius:18px; font-size:.86rem; letter-spacing:.05em; text-transform:uppercase; font-weight:500; color:#fff; text-decoration:none; background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border:1px solid rgba(255,255,255,0.12); backdrop-filter:blur(6px); transition:background 260ms ease, transform 260ms cubic-bezier(.22,.95,.25,1), box-shadow 260ms ease; overflow:hidden; }
+.sun-menu-link::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 14% 50%, rgba(255,180,120,0.25), transparent 65%); opacity:0; transition:opacity 400ms ease; }
+.sun-menu-link:hover { transform:translateX(6px); background:linear-gradient(100deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05)); box-shadow:0 8px 34px -8px rgba(255,150,70,0.35),0 0 0 1px rgba(255,200,150,0.12) inset; }
+.sun-menu-link:hover::before { opacity:1; }
+.sun-menu-link:active { transform:translateX(2px); }
+.sun-menu-link:focus-visible { outline:2px solid var(--accent-plasma); outline-offset:3px; }
+
+/* Aura / subtle glow behind panel */
+.sun-sections-menu.open::after { content:''; position:absolute; inset:-14% -18%; background:radial-gradient(circle at 30% 50%, rgba(255,150,70,0.18), rgba(255,110,40,0.08) 40%, transparent 70%); filter:blur(30px); z-index:-1; opacity:.85; animation: panelAura 8s ease-in-out infinite alternate; }
+@keyframes panelAura { 0% { transform:translate3d(0,0,0) scale(1); opacity:.65;} 50% { transform:translate3d(4px,-6px,0) scale(1.04); opacity:1;} 100% { transform:translate3d(-6px,6px,0) scale(.98); opacity:.7;} }
+
+/* Hide left generator options if sun menu is open to reduce clutter */
+.dashboard-layout.sun-menu-open .left-options { opacity:0; pointer-events:none; transition:opacity 400ms ease; }
+
+/* Disable route pulse when menu opens (avoid conflicting motion) */
+.dashboard-layout.sun-menu-open .route-pulse { animation:none; }
+
+/* Lift hero overlay slightly when menu is open */
+.dashboard-layout.sun-menu-open .hero-overlay { transform:translate(-50%, -54%); transition: transform 800ms cubic-bezier(.22,.95,.25,1); }
+
+/* Accessibility: ensure pointer interactions allowed on sun */
+.dashboard-layout .sun-container-3d { pointer-events:auto; }
+.dashboard-layout.sun-menu-open .sun-hit-target { cursor:zoom-out; }
+/* ================= End Sun Menu ================= */
+
+/* Temporary debug overlay (visible) */
+.debug-overlay { position: fixed; right: 18px; bottom: 18px; z-index: 80; }
+.debug-inner { background: rgba(6,10,12,0.65); border:1px solid rgba(255,255,255,0.05); padding:10px 12px; border-radius:8px; color:#fff; font-size:0.85rem; backdrop-filter: blur(6px); }
+.debug-inner button { background: rgba(255,255,255,0.04); color:#fff; border:1px solid rgba(255,255,255,0.06); padding:6px 8px; border-radius:6px; cursor:pointer; }
+.debug-inner button:hover { background: rgba(255,255,255,0.08); }
+
+/* Overrides to ensure sun menu click works (appended) */
+.sun-hit-target { z-index: 6 !important; }
+.sun-container-3d > canvas { pointer-events: none !important; }
+
+/* When Transit panel is active, move the hero to the left and place the sun
+   below the hero text so the transit table on the right doesn't overlap it. */
+.dashboard-layout.transit-active .hero-overlay {
+  left: 6%;
+  transform: translate(0, -44%);
+  text-align: left;
+  max-width: 30ch;
+  transition: left 520ms linear, transform 520ms linear, opacity 520ms linear;
+  z-index: 8;
+}
+
+/* When transit is active, animate hero text out so only the sun remains visible */
+.dashboard-layout.transit-active .hero-overlay { }
+.dashboard-layout.transit-active .hero-overlay * { transition: transform 420ms linear, opacity 420ms linear; }
+.dashboard-layout.transit-active .hero-overlay.route-pulse { transform: translate(-6%, -40%); opacity: 0; pointer-events: none; }
+.dashboard-layout.transit-active .hero-title { transform: translateX(-22px); opacity: 0; }
+.dashboard-layout.transit-active .hero-subtitle { transform: translateX(-18px); opacity: 0; }
+.dashboard-layout.transit-active .planet-context-chip { transform: translateX(-12px); opacity: 0; }
+
+.dashboard-layout.transit-active .sun-container-3d {
+  /* anchor the sun directly under the hero (left-aligned) */
+  left: 6%;
+  transform-origin: top left;
+  transform: translateX(0) translateY(18vh) scale(0.62) !important;
+  bottom: -40vh; /* bring more of the sun into view under the hero */
+  transition: left 520ms linear, transform 520ms linear, bottom 520ms linear;
+  opacity: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Ensure the transit panel still stretches full width on very small screens */
+@media (max-width: 720px) {
+  .transit-panel { width: 100vw; right: 0; left: 0; margin: 0 auto; }
+  /* on mobile keep hero centered but nudge up to make room for the panel */
+  .dashboard-layout.transit-active .hero-overlay {
+    left: 50%;
+    transform: translate(-50%, -64%);
+    max-width: 80ch;
+  }
+  .dashboard-layout.transit-active .sun-container-3d {
+    left: 50%;
+    transform-origin: top center;
+    transform: translateX(-50%) translateY(8vh) scale(0.66) !important;
+    bottom: -38vh;
+  }
+}
+
+/* Ensure sidebar buttons fully disappear during transit with a linear motion */
+.dashboard-layout.transit-active .sidebar .planet-btn,
+.dashboard-layout.transit-open .sidebar .planet-btn {
+  transform: translateX(-360px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: transform 520ms linear, opacity 520ms linear;
+}
+
+/* Fade out the sidebar container slightly to reduce visual clutter while transit is active */
+.dashboard-layout.transit-active .sidebar {
+  opacity: 0.04;
+  pointer-events: none;
+  transition: opacity 520ms linear;
+}
+
+/* Generator overlay: full-screen takeover with left panel and right 3D preview */
+.generator-overlay { position: fixed; inset: 0; z-index: 140; display:flex; align-items:stretch; background: rgba(3,6,10,0.7); backdrop-filter: blur(8px); }
+.generator-panel { display:flex; width:100%; height:100%; }
+.generator-left { width: 360px; min-width: 320px; background: linear-gradient(180deg, rgba(12,14,18,0.95), rgba(8,10,12,0.94)); border-right: 1px solid rgba(255,255,255,0.04); padding: 20px; box-shadow: 0 20px 80px rgba(0,0,0,0.6); transform: translateX(-24px); opacity: 0; transition: transform 420ms cubic-bezier(.22,.95,.25,1), opacity 420ms linear; }
+.dashboard-layout.generator-open .generator-overlay { pointer-events: auto; }
+.dashboard-layout.generator-open .generator-left { transform: translateX(0); opacity: 1; }
+.generator-left-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.generator-left h3 { margin:0; color:#fff; }
+.generator-left button { background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:#fff; padding:6px 10px; border-radius:8px; }
+.drop-area { margin-top:18px; border:2px dashed rgba(255,255,255,0.04); padding:18px; border-radius:12px; min-height:120px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.7); }
+.generator-fields { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+.generator-fields label { display:flex; flex-direction:column; gap:6px; color:#fff; font-size:0.9rem; }
+.generator-fields input { padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:#fff; }
+.generator-right { flex:1; display:flex; align-items:center; justify-content:center; padding:28px; }
+.preview-shell { width: min(720px, 66%); height: min(720px, 70%); background: linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.05)); border-radius:14px; overflow:hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.6); }
+
+/* Hide everything else when generator is open (use generator-open class on root) */
+.dashboard-layout.generator-open .space-bg,
+.dashboard-layout.generator-open .hero-overlay,
+.dashboard-layout.generator-open .sun-sections-menu,
+.dashboard-layout.generator-open .transit-panel,
+.dashboard-layout.generator-open .sidebar,
+.dashboard-layout.generator-open .left-options,
+.dashboard-layout.generator-open .debug-overlay { opacity: 0; pointer-events: none; transition: opacity 420ms linear; }
+
+@media (max-width: 900px) {
+  .generator-left { width: 300px; min-width: 260px; }
+  .preview-shell { width: 92vw; height: 56vh; }
+}
+
 
