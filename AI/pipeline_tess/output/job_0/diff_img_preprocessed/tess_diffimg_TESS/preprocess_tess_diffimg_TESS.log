@@ -1,0 +1,36 @@
+2025-10-04 20:03:15,975 - [tess_diffimg_TESS.npy] Starting preprocessing...
+2025-10-04 20:03:15,976 - Loading difference image data from /app/output/job_0/diff_img_extracted/tess_diffimg_TESS.npy
+2025-10-04 20:03:16,005 - Number of TCEs to preprocess: 3
+2025-10-04 20:03:16,006 - [tess_diffimg_TESS] Preprocessed 1 example(s) out of 3.
+2025-10-04 20:03:16,020 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S6. Setting data to placeholder value.
+2025-10-04 20:03:16,032 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S1-39. Setting data to placeholder value.
+2025-10-04 20:03:16,043 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-2-S1-39. Setting data to placeholder value.
+2025-10-04 20:03:16,044 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
+2025-10-04 20:03:16,060 - [tess_diffimg_TESS] Finished preprocessing difference image data for 3 examples.
+2025-10-05 21:18:24,363 - [tess_diffimg_TESS.npy] Starting preprocessing...
+2025-10-05 21:18:24,365 - Loading difference image data from /app/output/job_0/diff_img_extracted/tess_diffimg_TESS.npy
+2025-10-05 21:18:24,423 - Number of TCEs to preprocess: 3
+2025-10-05 21:18:24,424 - [tess_diffimg_TESS] Preprocessed 1 example(s) out of 3.
+2025-10-05 21:18:24,449 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S6. Setting data to placeholder value.
+2025-10-05 21:18:24,470 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S1-39. Setting data to placeholder value.
+2025-10-05 21:18:24,487 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-2-S1-39. Setting data to placeholder value.
+2025-10-05 21:18:24,489 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
+2025-10-05 21:18:24,538 - [tess_diffimg_TESS] Finished preprocessing difference image data for 3 examples.
+2025-10-05 21:50:40,231 - [tess_diffimg_TESS.npy] Starting preprocessing...
+2025-10-05 21:50:40,232 - Loading difference image data from /app/output/job_0/diff_img_extracted/tess_diffimg_TESS.npy
+2025-10-05 21:50:40,293 - Number of TCEs to preprocess: 3
+2025-10-05 21:50:40,295 - [tess_diffimg_TESS] Preprocessed 1 example(s) out of 3.
+2025-10-05 21:50:40,307 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S6. Setting data to placeholder value.
+2025-10-05 21:50:40,330 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S1-39. Setting data to placeholder value.
+2025-10-05 21:50:40,343 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-2-S1-39. Setting data to placeholder value.
+2025-10-05 21:50:40,345 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
+2025-10-05 21:50:40,385 - [tess_diffimg_TESS] Finished preprocessing difference image data for 3 examples.
+2025-10-05 21:54:49,511 - [tess_diffimg_TESS.npy] Starting preprocessing...
+2025-10-05 21:54:49,512 - Loading difference image data from /app/output/job_0/diff_img_extracted/tess_diffimg_TESS.npy
+2025-10-05 21:54:49,566 - Number of TCEs to preprocess: 3
+2025-10-05 21:54:49,571 - [tess_diffimg_TESS] Preprocessed 1 example(s) out of 3.
+2025-10-05 21:54:49,585 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S6. Setting data to placeholder value.
+2025-10-05 21:54:49,598 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-1-S1-39. Setting data to placeholder value.
+2025-10-05 21:54:49,610 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-2-S1-39. Setting data to placeholder value.
+2025-10-05 21:54:49,612 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
+2025-10-05 21:54:49,644 - [tess_diffimg_TESS] Finished preprocessing difference image data for 3 examples.
