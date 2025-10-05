@@ -2,8 +2,9 @@ import type { ReactNode } from 'react';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
-import SunModel from '../components/three/SunModel';
 import SolarSystemShowcase from '../components/three/SolarSystemShowcase';
+import SunModel from '../components/three/SunModel';
+import { AboutSection } from '../pages/Settings/AboutSection';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
 // lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
@@ -26,6 +27,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [transitOpen, setTransitOpen] = useState(false);
   const [transitActive, setTransitActive] = useState(false);
   const [solarShowcaseOpen, setSolarShowcaseOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -81,6 +83,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Ensure About overlay closes when leaving dashboard phase
+  useEffect(() => {
+    if (sunPhase !== 'dashboard' && aboutOpen) setAboutOpen(false);
+  }, [sunPhase]);
 
   // Open transit panel (in-layout) with a linear, smooth reveal
   const openTransit = (e?: React.MouseEvent) => {
@@ -279,7 +286,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {generatorOpen && (
         <div className="generator-overlay" aria-hidden={!generatorOpen}>
           <Suspense fallback={<div className="generator-left" aria-hidden="true" /> }>
-            <PlanetBuilderPanel onClose={() => { setTransitOpen(false); setGeneratorOpen(false); setLeftOpen(false); setSunPhase('dashboard'); }} />
+            <PlanetBuilderPanel />
           </Suspense>
         </div>
       )}
@@ -291,6 +298,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         onClose={() => setIsModalOpen(false)}
         initialView={modalView}
       />
+      {/* Floating About button (bottom-left) - only on dashboard */}
+      {sunPhase === 'dashboard' && (
+        <button
+          aria-label="Sobre ExoLens"
+          title="Sobre ExoLens"
+          onClick={() => setAboutOpen(true)}
+          className="about-fab"
+        >
+          Sobre
+        </button>
+      )}
+
+      {aboutOpen && <AboutSection onClose={() => setAboutOpen(false)} />}
       {/* generator-screen removed: we now use left-options + animated sun for the entry flow */}
     </div>
   );

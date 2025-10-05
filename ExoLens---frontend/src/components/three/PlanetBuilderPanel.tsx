@@ -1,5 +1,11 @@
-import React, { useCallback, useState, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import './PlanetBuilderPanel.css';
 import PlanetPreview3D from './PlanetPreview3D';
+
+
+// Back arrow button removed per UX request (was rendering a small top-left arrow).
+
+
 
 type PlanetData = {
   name?: string;
@@ -20,9 +26,11 @@ function parseCSV(content: string): PlanetData | null {
   return { mass: out.mass ? Number(out.mass) : undefined, radius: out.radius ? Number(out.radius) : undefined, color: out.color, composition: (out.composition as any) };
 }
 
-export default function PlanetBuilderPanel({ onClose }: { onClose: () => void }) {
+export default function PlanetBuilderPanel() {
   const [planet, setPlanet] = useState<PlanetData>({ name: 'New World', mass: 1, radius: 1.0, color: '#d88', composition: 'rocky' });
   const [error, setError] = useState<string | null>(null);
+  const [typedText, setTypedText] = useState('');
+  const [typingActive, setTypingActive] = useState(true);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -170,6 +178,29 @@ export default function PlanetBuilderPanel({ onClose }: { onClose: () => void })
   const [isGenerating, setIsGenerating] = useState(false);
   const [showLightCurveModal, setShowLightCurveModal] = useState(false);
   const [previewZoomed, setPreviewZoomed] = useState(false);
+  // typing effect content
+  const fullText = `Importe um arquivo JSON/CSV com parâmetros planetários ou use o gerador integrado para criar mundos baseados em composição, massa e raio. Experimente diferentes composições para ver como mudam textura, massa e a profundidade do trânsito — é uma ferramenta para explorar hipóteses científicas e criar modelos visuais coerentes antes de exportar.`;
+
+  useEffect(() => {
+    let idx = 0;
+    let mounted = true;
+    const speed = 18; // ms per char
+    setTypedText('');
+    setTypingActive(true);
+    const tick = () => {
+      if (!mounted) return;
+      idx += 1;
+      setTypedText(fullText.slice(0, idx));
+      if (idx < fullText.length) {
+        window.setTimeout(tick, speed + Math.round(Math.random() * 20));
+      } else {
+        setTypingActive(false);
+      }
+    };
+    // start slightly delayed to allow layout
+    const starter = window.setTimeout(tick, 420);
+    return () => { mounted = false; window.clearTimeout(starter); };
+  }, []);
 
   // generation is now triggered by file import; keep ability to mark generating if needed
 
@@ -191,7 +222,8 @@ export default function PlanetBuilderPanel({ onClose }: { onClose: () => void })
     <div className="generator-panel">
       <div className="generator-right" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, position: 'relative' }}>
+              {/* back arrow removed to declutter top-left UX */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {previewReady ? (
                   <button
@@ -222,9 +254,7 @@ export default function PlanetBuilderPanel({ onClose }: { onClose: () => void })
                   </button>
                 ) : null}
               </div>
-              <div>
-                <button onClick={onClose} aria-label="Fechar" style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 22 }}>×</button>
-              </div>
+              <div style={{ minWidth: 36 }} />
             </div>
           {/* top explanatory text removed — replaced by animated connection badges */}
           {previewReady && (
@@ -236,9 +266,15 @@ export default function PlanetBuilderPanel({ onClose }: { onClose: () => void })
             {/* If preview isn't ready show a central drag & drop / click input */}
             {!previewReady && (
               <div style={{ textAlign: 'center' }}>
+                <div className="planet-builder-header">
+                  <div className="planet-builder-title">Criar exoplanetas</div>
+                  <div className="planet-builder-desc">
+                      <span className={`typewriter ${typingActive ? 'typing' : ''}`}>{typedText}</span>
+                    </div>
+                </div>
                 <input ref={inputRef} type="file" accept=".json,.csv,application/json,text/csv" onChange={onFileInput} style={{ display: 'none' }} />
-                <div className="drop-area" onDragOver={(e) => e.preventDefault()} onDrop={onDrop} onClick={() => inputRef.current?.click()} style={{ cursor: 'pointer', maxWidth: 680, margin: '0 auto', padding: 28, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.012)' }}>
-                  <div style={{ color: '#ddd', marginBottom: 8, fontWeight: 700 }}>Arraste e solte seu arquivo aqui ou clique para selecionar</div>
+                <div className="drop-area" onDragOver={(e) => e.preventDefault()} onDrop={onDrop} onClick={() => inputRef.current?.click()}>
+                  <div className="hint-text">Arraste e solte seu arquivo aqui ou clique para selecionar</div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12 }}>
                   <button onClick={downloadTemplate} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: '#fff', padding: '8px 12px', borderRadius: 8, cursor: 'pointer' }}>Download model</button>
