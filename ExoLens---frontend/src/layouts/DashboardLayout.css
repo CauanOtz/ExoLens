@@ -96,6 +96,26 @@
   animation: sunGlow 4s ease-in-out infinite;
 }
 
+/* Make the invisible hit target cover the sun so clicks on the sun toggle the menu reliably */
+.sun-container-3d .sun-hit-target {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent; /* invisible but captures clicks */
+  border: none;
+  padding: 0;
+  margin: 0;
+  z-index: 6; /* above the canvas (canvas is z-index: auto) but below UI overlays */
+  cursor: pointer;
+  pointer-events: auto; /* ensure it receives pointer events even if parent had none */
+}
+
+.sun-container-3d .sun-hit-target:focus {
+  outline: 2px solid rgba(255,220,160,0.12);
+  outline-offset: 4px;
+}
+
 /* Ensure any canvas inside fills the container */
 .sun-container-3d > canvas {
   width: 100% !important;
@@ -109,14 +129,114 @@
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  z-index: 4;
-  pointer-events: none;
+  z-index: 200; /* above sun and most UI layers but below generator overlay (140) intentionally kept lower previously) */
+  pointer-events: auto; /* allow buttons inside to receive clicks */
   max-width: 80ch;
+}
+
+/* preview overlay connections and badges */
+.preview-overlay { pointer-events: none; }
+.connection-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawPath 0.85s cubic-bezier(.2,.9,.2,1) forwards;
+  opacity: 0.98;
+}
+@keyframes drawPath {
+  to { stroke-dashoffset: 0; }
+}
+.info-badge {
+  background: rgba(6,8,12,0.7);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  min-width: 160px;
+  font-size: 13px;
 }
 
 .hero-overlay {
   padding: 1.25rem 1.75rem;
   border-radius: 14px;
+}
+
+/* Adicione este código ao final do seu arquivo DashboardLayout.css */
+
+.dashboard-header {
+  /* Posicionamento */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  
+  /* Alinhamento */
+  display: flex;
+  justify-content: center;
+  
+  /* Espaçamento e Camada */
+
+  z-index: 1000; /* Garante que fique acima dos outros elementos */
+  
+  /* Importante: permite que cliques "atravessem" o header, exceto na logo */
+  pointer-events: none; 
+}
+
+/* Links de Autenticação no canto superior direito */
+.auth-links {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2rem; /* Mesmo padding do header da logo para simetria */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 2.9rem; /* Espaço entre os links */
+}
+
+/* Estilo para o link simples ("Entrar") */
+.auth-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.auth-link:hover {
+  opacity: 1;
+}
+
+/* Estilo para o botão de destaque ("Criar Conta") */
+.auth-button {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 20px;
+  margin-right: 30px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.auth-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.header-logo {
+  /* Make the header logo comfortably larger and responsive across viewports.
+     clamp(min, preferred, max) keeps it within reasonable bounds. */
+  height: clamp(48px, 6vw, 96px);
+  width: auto; /* preserve aspect ratio */
+  opacity: 0.95; /* slightly more visible */
+  pointer-events: auto; /* keep it interactive if needed */
+  display: block; /* avoid baseline spacing issues */
+  object-fit: contain;
+  transition: transform 210ms ease, opacity 210ms ease;
 }
 
 .hero-title {
@@ -126,32 +246,15 @@
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.01em;
-  /* warm gradient with clipped text for a luminous look */
-  background: linear-gradient(90deg, #fff8e6 0%, #ffd07a 55%, #ffb36b 100%);
+  /* neutral title (no glow) */
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  color: white;
   position: relative;
   display: inline-block;
-  text-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(255,200,80,0.05);
+  text-shadow: none;
 }
 
-/* glowing halo under the title */
-.hero-title::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -40%);
-  width: 160%;
-  height: 44%;
-  background: radial-gradient(circle at center, rgba(255,175,60,0.14), transparent 40%);
-  filter: blur(22px);
-  z-index: -1;
-  border-radius: 50%;
-  opacity: 0.9;
-  animation: heroPulse 6s ease-in-out infinite;
-}
 
 .hero-subtitle {
   margin: 0;
@@ -165,6 +268,13 @@
   opacity: 0.96;
   letter-spacing: 0.02em;
 }
+
+/* Mini helper button inside debug overlay to open the sun menu */
+.debug-overlay { position: fixed; right: 18px; bottom: 18px; z-index: 1100; pointer-events: auto; }
+.debug-overlay .debug-inner { display:flex; gap:8px; align-items:center; background: rgba(6,8,12,0.45); padding:8px 10px; border-radius:10px; backdrop-filter: blur(6px); }
+.mini-sun-open { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; color:#ffcc88; cursor:pointer; }
+.mini-sun-open:hover { background: rgba(255,200,120,0.06); transform: translateY(-2px); }
+.mini-sun-open:focus { outline: 2px solid rgba(255,200,120,0.9); outline-offset: 2px; }
 
 .space-particles {
   position: absolute;
@@ -480,12 +590,26 @@
 .route-pulse { animation: routePulse 880ms cubic-bezier(.35,.9,.3,1); }
 @keyframes routePulse { 0% { opacity:0; transform: translate(-50%,-54%) scale(.94);} 55% { opacity:1;} 100% { opacity:1; transform: translate(-50%,-50%) scale(1);} }
 
-.planet-context-chip { margin-top:1rem; display:inline-flex; gap:6px; padding:6px 14px; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; border-radius:24px; background:linear-gradient(90deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.14); box-shadow:0 4px 14px -2px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05) inset; }
+.planet-context-chip { margin-top:1rem; display:inline-flex; gap:6px; padding:6px 14px; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; border-radius:24px;  backdrop-filter:blur(6px); }
 .planet-context-chip span { background:linear-gradient(90deg,var(--accent-gold),var(--accent-plasma)); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:600; }
 
-.dashboard-layout.sun-phase-generator .hero-title { text-shadow:0 0 22px rgba(255,150,80,.35),0 0 60px rgba(255,120,60,.25); }
-.dashboard-layout.sun-phase-transit .hero-title { text-shadow:0 0 22px rgba(140,190,255,.35),0 0 60px rgba(110,155,255,.25); }
-.dashboard-layout.sun-phase-settings .hero-title { text-shadow:0 0 22px rgba(200,160,255,.35),0 0 60px rgba(160,120,255,.25); }
+/* buttons that replace the single chip label */
+.planet-context-action { background: transparent; border: 1px solid rgba(255,255,255,0.06); padding: 8px 10px; border-radius: 18px; color: #fff; font-weight:600; font-size:0.78rem; cursor:pointer; transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease; }
+.planet-context-action:hover { transform: translateY(-3px); background: rgba(255,255,255,0.03); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+.planet-context-action:active { transform: translateY(-1px) scale(.995); }
+.planet-context-action[aria-pressed="true"], .planet-context-action.active { box-shadow: 0 10px 36px rgba(0,0,0,0.45); background: linear-gradient(90deg, rgba(255,160,60,0.12), rgba(255,120,40,0.08)); }
+
+/* Ensure hero buttons sit above the sun canvas and accept pointer events */
+.hero-overlay .planet-context-action,
+.hero-overlay .hero-section-btn {
+  position: relative;
+  z-index: 210;
+  pointer-events: auto;
+}
+
+.dashboard-layout.sun-phase-generator .hero-title { text-shadow:0 0 22px rgba(173, 133, 0, 0.35),0 0 60px rgba(149, 160, 0, 0.25); }
+.dashboard-layout.sun-phase-transit .hero-title { text-shadow:0 0 22px rgba(173, 133, 0, 0.35),0 0 60px rgba(149, 160, 0, 0.25); }
+.dashboard-layout.sun-phase-settings .hero-title { text-shadow:0 0 22px rgba(173, 133, 0, 0.35),0 0 60px rgba(149, 160, 0, 0.25); }
 
 .dashboard-layout.sun-phase-transit .space-bg::before { filter:hue-rotate(18deg) saturate(1.25); }
 .dashboard-layout.sun-phase-generator .space-bg::before { filter:hue-rotate(-15deg) saturate(1.35); }
@@ -525,7 +649,6 @@
 .sidebar .planet-btn .planet-label::after { content:''; position:absolute; left:0; bottom:-4px; height:2px; width:0; background:linear-gradient(90deg,var(--accent-electric),transparent); transition:width .6s cubic-bezier(.25,.9,.25,1); border-radius:2px; }
 .sidebar .planet-btn:hover .planet-label::after, .sidebar .planet-btn.active .planet-label::after { width:100%; }
 
-.hero-title { background:none !important; -webkit-background-clip:initial !important; background-clip:initial !important; color:#fff !important; }
 
 /* ================= Sun Click -> Floating Sections Menu ================= */
 .sun-hit-target { position:absolute; inset:0; background:transparent; border:none; cursor:pointer; pointer-events:auto; z-index:3; }
@@ -660,7 +783,7 @@
 .generator-left-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .generator-left h3 { margin:0; color:#fff; }
 .generator-left button { background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:#fff; padding:6px 10px; border-radius:8px; }
-.drop-area { margin-top:18px; border:2px dashed rgba(255,255,255,0.04); padding:18px; border-radius:12px; min-height:120px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.7); }
+.drop-area { margin-top:18px; border:2px solid rgba(253, 253, 253, 0.863); padding:18px; border-radius:12px; min-height:120px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.7); box-shadow: 0px 0px 12px white; }
 .generator-fields { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
 .generator-fields label { display:flex; flex-direction:column; gap:6px; color:#fff; font-size:0.9rem; }
 .generator-fields input { padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:#fff; }
@@ -679,5 +802,45 @@
   .generator-left { width: 300px; min-width: 260px; }
   .preview-shell { width: 92vw; height: 56vh; }
 }
+
+
+/* Solar showcase panel (dialog) */
+.solar-showcase-panel {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,4,8,0.72);
+  z-index: 1200;
+  padding: 6vh 4vw;
+  animation: showcaseOpen 200ms cubic-bezier(.2,.9,.25,1) both;
+}
+.solar-showcase-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* inner panel used inside the showcase to visually block the sun behind it */
+.solar-showcase-inner {
+  background: linear-gradient(180deg, rgba(10,12,14,0.9), rgba(6,8,10,0.86));
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 12px 48px rgba(2,6,23,0.6);
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+
+@keyframes showcaseOpen {
+  from { opacity: 0; transform: scale(0.992); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 
 
