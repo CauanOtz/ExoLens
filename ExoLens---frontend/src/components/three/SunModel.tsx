@@ -28,7 +28,6 @@ export default function SunModel({ modelUrl, modelPath, distance = 8, height = '
     const container = containerRef.current;
     if (!container) return;
 
-    // follow EarthModel structure: camera placed at `distance`, load model and center/scale
     let width = container.clientWidth || window.innerWidth;
     let heightPx = typeof height === 'number' ? height : container.clientHeight || 520;
 

@@ -304,35 +304,36 @@
 /* when generator opens, add subtle movement to the hero and move sun upward */
 .dashboard-layout.generator-open .sun-container-3d {
   transform: translateY(-24vh) translateX(18%) scale(0.95);
-  transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+  /* faster transition to reduce perceived open time */
+  transition: transform 360ms cubic-bezier(.2,.9,.2,1);
 }
 
 .dashboard-layout.generator-open .hero-overlay {
   transform: translate(-50%, -70%);
-  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 340ms cubic-bezier(.2,.9,.2,1);
 }
 
 .dashboard-layout.generator-open .sidebar {
   transform: translateX(-180px);
-  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 340ms cubic-bezier(.2,.9,.2,1);
 }
 
 .dashboard-layout.generator-closing .sun-container-3d {
   transform: translateX(-50%);
   bottom: -90vh; 
-  transition: transform 900ms cubic-bezier(.2,.9,.2,1), bottom 900ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 360ms cubic-bezier(.2,.9,.2,1), bottom 360ms cubic-bezier(.2,.9,.2,1);
 }
 .dashboard-layout.generator-closing .hero-overlay {
   transform: translate(-50%, -50%); 
-  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 340ms cubic-bezier(.2,.9,.2,1);
 }
 .dashboard-layout.generator-closing .sidebar {
   transform: translateX(0); 
-  transition: transform 850ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 340ms cubic-bezier(.2,.9,.2,1);
 }
 
 /* ensure left-options closing visual is out */
-.left-options { transition: left 750ms cubic-bezier(.2,.9,.2,1); }
+.left-options { transition: left 320ms cubic-bezier(.2,.9,.2,1); }
 .left-options.open { left: 24px; }
 .left-options:not(.open) { left: -320px; }
 
@@ -343,7 +344,7 @@
   top: 18vh;
   width: 280px;
   z-index: 45;
-  transition: left 900ms cubic-bezier(.2,.9,.2,1);
+  transition: left 360ms cubic-bezier(.2,.9,.2,1);
 }
 .left-options {
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -418,7 +419,7 @@
 /* slide-right class applied to sidebar items when opening generator */
 .planet-btn.slide-right {
   transform: translateX(28px);
-  transition: transform 700ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 340ms cubic-bezier(.2,.9,.2,1);
 }
 
 /* Drag sidebar buttons out of the viewport when generator or sun menu is active */
@@ -438,21 +439,21 @@
 }
 
 /* Transit panel (in-layout) */
-.transit-panel { position: fixed; right: 36px; top: 12vh; width: min(64%, 980px); max-width: 92vw; height: 72vh; z-index: 60; pointer-events: none; transform: translateX(12px) translateY(6px) scale(.995); opacity: 0; transition: transform 520ms linear, opacity 520ms linear; }
+.transit-panel { position: fixed; right: 36px; top: 12vh; width: min(64%, 980px); max-width: 92vw; height: 72vh; z-index: 60; pointer-events: none; transform: translateX(12px) translateY(6px) scale(.995); opacity: 0; transition: transform 320ms linear, opacity 320ms linear; }
 .transit-panel.open { pointer-events: auto; }
 .transit-panel.active { transform: translateX(0) translateY(0) scale(1); opacity: 1; }
 .transit-panel-inner { background: linear-gradient(180deg, rgba(10,12,16,0.85), rgba(14,16,20,0.78)); border-radius: 14px; padding: 18px; box-shadow: 0 20px 80px rgba(4,6,10,0.6); backdrop-filter: blur(8px) saturate(120%); height: 100%; overflow:auto; }
 .transit-close { position:absolute; right: 12px; top: 8px; z-index: 68; background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); width:36px; height:36px; border-radius:10px; cursor:pointer; }
 
 
-/* Staggered transitions so buttons appear to be dragged out sequentially */
-.sidebar .planet-nav .planet-btn { transition: transform 640ms cubic-bezier(.22,.95,.25,1), opacity 420ms ease; }
+/* Staggered transitions so buttons appear to be dragged out sequentially (faster) */
+.sidebar .planet-nav .planet-btn { transition: transform 340ms cubic-bezier(.22,.95,.25,1), opacity 320ms ease; }
 .sidebar .planet-nav .planet-btn:nth-child(1) { transition-delay: 0ms; }
-.sidebar .planet-nav .planet-btn:nth-child(2) { transition-delay: 80ms; }
-.sidebar .planet-nav .planet-btn:nth-child(3) { transition-delay: 140ms; }
-.sidebar .planet-nav .planet-btn:nth-child(4) { transition-delay: 200ms; }
-.sidebar .planet-nav .planet-btn:nth-child(5) { transition-delay: 260ms; }
-.sidebar .planet-nav .planet-btn:nth-child(6) { transition-delay: 320ms; }
+.sidebar .planet-nav .planet-btn:nth-child(2) { transition-delay: 40ms; }
+.sidebar .planet-nav .planet-btn:nth-child(3) { transition-delay: 80ms; }
+.sidebar .planet-nav .planet-btn:nth-child(4) { transition-delay: 120ms; }
+.sidebar .planet-nav .planet-btn:nth-child(5) { transition-delay: 160ms; }
+.sidebar .planet-nav .planet-btn:nth-child(6) { transition-delay: 200ms; }
 
 /* Ensure they return cleanly when closed */
 .dashboard-layout:not(.generator-open):not(.sun-menu-open) .sidebar .planet-btn { transform: translateX(0) !important; opacity: 1; pointer-events: auto; }
@@ -537,16 +538,12 @@
 .sun-click-flash { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 36%; height: 36%; border-radius:50%; background: radial-gradient(circle, rgba(255,210,120,0.18), rgba(255,160,70,0.08) 45%, transparent 60%); z-index:7; pointer-events:none; animation: flashPulse 620ms ease-out; }
 @keyframes flashPulse { 0% { transform: translate(-50%,-50%) scale(.92); opacity:1; } 100% { transform: translate(-50%,-50%) scale(1.07); opacity:0; } }
 
-/* Shift the sun to the right creating space on left */
-.dashboard-layout.sun-menu-open .sun-container-3d { transform: translateX(-10%) translateY(-15vh) scale(.92) rotateZ(4deg); bottom:-70vh; }
-
-/* stronger class applied directly to the container for deterministic transform */
 .sun-container-3d.shift-right { transform: translateX(12%) translateY(-10vh) scale(.92) rotateZ(2.6deg) !important; bottom: -70vh !important; transition: transform 780ms cubic-bezier(.22,.95,.25,1) !important; }
 
 /* Floating menu container */
-.sun-sections-menu { position:fixed; left:36px; top:50%; transform:translateY(-50%) translateX(-40px); opacity:0; pointer-events:none; z-index:5; width:280px; max-width:32vw; transition: transform 700ms cubic-bezier(.22,.95,.25,1), opacity 620ms ease; }
+.sun-sections-menu { position:fixed; left:36px; top:50%; transform:translateY(-50%) translateX(-40px); opacity:0; pointer-events:none; z-index:5; width:280px; max-width:32vw; transition: transform 340ms cubic-bezier(.22,.95,.25,1), opacity 320ms ease; }
 .sun-sections-menu.open { transform:translateY(-50%) translateX(0); opacity:1; pointer-events:auto; }
-.sun-sections-inner { position:relative; display:flex; flex-direction:column; gap:18px; padding:28px 26px 30px; border-radius:28px; background:linear-gradient(160deg, rgba(18,24,33,0.78) 0%, rgba(12,16,22,0.65) 55%, rgba(18,24,33,0.55) 100%); backdrop-filter:blur(18px) saturate(140%); box-shadow:0 18px 60px -10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset, 0 0 0 1px rgba(255,165,90,0.12); animation: menuFloatIn 900ms cubic-bezier(.22,.95,.25,1); }
+.sun-sections-inner { position:relative; display:flex; flex-direction:column; gap:18px; padding:28px 26px 30px; border-radius:28px; background:linear-gradient(160deg, rgba(18,24,33,0.78) 0%, rgba(12,16,22,0.65) 55%, rgba(18,24,33,0.55) 100%); backdrop-filter:blur(18px) saturate(140%); box-shadow:0 18px 60px -10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset, 0 0 0 1px rgba(255,165,90,0.12); animation: menuFloatIn 360ms cubic-bezier(.22,.95,.25,1); }
 
 @keyframes menuFloatIn { 0% { transform:translateY(14px) scale(.96); opacity:0; } 60% { opacity:1; } 100% { transform:translateY(0) scale(1); opacity:1; } }
 
@@ -603,8 +600,7 @@
 }
 
 /* When transit is active, animate hero text out so only the sun remains visible */
-.dashboard-layout.transit-active .hero-overlay { }
-.dashboard-layout.transit-active .hero-overlay * { transition: transform 420ms linear, opacity 420ms linear; }
+.dashboard-layout.transit-active .hero-overlay * { transition: transform 320ms linear, opacity 320ms linear; }
 .dashboard-layout.transit-active .hero-overlay.route-pulse { transform: translate(-6%, -40%); opacity: 0; pointer-events: none; }
 .dashboard-layout.transit-active .hero-title { transform: translateX(-22px); opacity: 0; }
 .dashboard-layout.transit-active .hero-subtitle { transform: translateX(-18px); opacity: 0; }
@@ -658,7 +654,7 @@
 /* Generator overlay: full-screen takeover with left panel and right 3D preview */
 .generator-overlay { position: fixed; inset: 0; z-index: 140; display:flex; align-items:stretch; background: rgba(3,6,10,0.7); backdrop-filter: blur(8px); }
 .generator-panel { display:flex; width:100%; height:100%; }
-.generator-left { width: 360px; min-width: 320px; background: linear-gradient(180deg, rgba(12,14,18,0.95), rgba(8,10,12,0.94)); border-right: 1px solid rgba(255,255,255,0.04); padding: 20px; box-shadow: 0 20px 80px rgba(0,0,0,0.6); transform: translateX(-24px); opacity: 0; transition: transform 420ms cubic-bezier(.22,.95,.25,1), opacity 420ms linear; }
+.generator-left { width: 360px; min-width: 320px; background: linear-gradient(180deg, rgba(12,14,18,0.95), rgba(8,10,12,0.94)); border-right: 1px solid rgba(255,255,255,0.04); padding: 20px; box-shadow: 0 20px 80px rgba(0,0,0,0.6); transform: translateX(-24px); opacity: 0; transition: transform 320ms cubic-bezier(.22,.95,.25,1), opacity 320ms linear; }
 .dashboard-layout.generator-open .generator-overlay { pointer-events: auto; }
 .dashboard-layout.generator-open .generator-left { transform: translateX(0); opacity: 1; }
 .generator-left-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
@@ -677,7 +673,7 @@
 .dashboard-layout.generator-open .transit-panel,
 .dashboard-layout.generator-open .sidebar,
 .dashboard-layout.generator-open .left-options,
-.dashboard-layout.generator-open .debug-overlay { opacity: 0; pointer-events: none; transition: opacity 420ms linear; }
+.dashboard-layout.generator-open .debug-overlay { opacity: 0; pointer-events: none; transition: opacity 260ms linear; }
 
 @media (max-width: 900px) {
   .generator-left { width: 300px; min-width: 260px; }
