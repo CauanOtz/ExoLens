@@ -18,18 +18,16 @@ model User {
   @@map("users")
 }
 
-
 model Prediction {
   id String @id @default(uuid())
   description String?   
   probability Float    
   classification String
   createdAt DateTime @default(now()) @map("created_at")
-
   starParams Json @map("star_params")
   candidateParams Json @map("candidate_params")
   signalParams Json @map("signal_params")
-
+  existingData Boolean @map("existing_data")
   userId String @map("user_id")
 
   user User @relation(fields: [userId], references: [id])

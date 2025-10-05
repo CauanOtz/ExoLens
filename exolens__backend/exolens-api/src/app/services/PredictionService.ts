@@ -8,13 +8,14 @@ export class PredictionService {
     constructor(private predictionRepository: PredictionRepository) {}
 
     async registerPrediction(predictionData: RegisterPredicitionDTO) {
-        // Fix typo and add createdAt property
+
         const predictionToCreate = {
             ...predictionData,
             createdAt: new Date(),
             starParams: createStarParams(predictionData.starParams),
             candidateParams: createCandidateParams(predictionData.candidateParams),
             signalParams: createSignalParams(predictionData.signalParams),
+            existingData: false,
         };
         return this.predictionRepository.createPrediction(predictionToCreate);
     }
@@ -40,5 +41,13 @@ export class PredictionService {
         }
 
         return predictions.map(prediction => formatPredictionByViewSchema(prediction as any));
+    }
+    
+    async deletePredictionById(id: string) {
+        const prediction = await this.predictionRepository.findById(id);
+        if(!prediction) {
+            throw new NotFoundError('Prediction not found');
+        }
+        await this.predictionRepository.deleteById(id);
     }
 }

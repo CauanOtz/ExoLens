@@ -26,8 +26,8 @@ export class PredictionController {
                 throw new Error('ID is required');
             }
          
-
             const prediction = await this.PredictionService.getPredictionById(id);
+
             return res.status(200).json(prediction);
         } catch (error) {
             next(error);
@@ -45,7 +45,30 @@ export class PredictionController {
             next(error);
         }
     }
+    async deleteById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { id: predictionId } = req.params;
+            const userId = req.user?.id;
 
+            if (!userId) {
+                return res.status(401).json({ message: 'Unauthorized' });
+            }
 
+            if (!predictionId) {
+                return res.status(400).json({ message: 'Prediction ID is required.' });
+            }
+
+            const prediction = await this.PredictionService.getPredictionById(predictionId);
+
+            if (prediction.userId !== userId) {
+                return res.status(403).json({ message: 'Forbidden: You can only delete your own predictions.' });
+            }
+
+            await this.PredictionService.deletePredictionById(predictionId);
+            return res.status(204).send();
+        } catch (error) {
+            next(error);
+        }
+    }
 
 }
