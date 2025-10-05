@@ -16,15 +16,34 @@ interface PlanetPreviewProps {
   color?: string;
   radius?: number;
   composition?: 'rocky' | 'gaseous' | 'icy';
+  planetData?: {
+    signal_params?: {
+      orbital_period?: { value: number; error?: number; unit?: string };
+      transit_duration?: { value: number; error?: number; unit?: string };
+      transit_depth?: { value: number; error?: number };
+      impact_parameter?: { value: number; error?: number };
+    };
+    candidate_params?: {
+      mass?: { value: number; error?: number; unit?: string };
+      radius?: { value: number; error?: number; unit?: string };
+    };
+    star_params?: {
+      mass?: { value: number; error?: number; unit?: string };
+      radius?: { value: number; error?: number; unit?: string };
+      effective_temperature?: { value: number; error?: number; unit?: string };
+    };
+  };
 }
 
-export default function PlanetPreview3D({ color = '#c66', radius = 1, composition = 'rocky' }: PlanetPreviewProps) {
+export default function PlanetPreview3D({ color = '#c66', radius = 1, composition = 'rocky', planetData }: PlanetPreviewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const [preset, setPreset] = useState<'custom' | 'earth' | 'jupiter' | 'sun' | 'mars' | 'mercury' | 'neptune' | 'saturn'>('custom');
   const [internalColor, setInternalColor] = useState(color);
   const [internalRadius, setInternalRadius] = useState(radius);
   const [internalComposition, setInternalComposition] = useState<typeof composition>(composition);
+  const [lifeProbability, setLifeProbability] = useState<number | null>(null);
+  const [lifeBreakdown, setLifeBreakdown] = useState<Record<string, number> | null>(null);
 
   useEffect(() => {
     // apply preset values
@@ -38,6 +57,112 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
       setInternalComposition(composition);
     }
   }, [preset, color, radius, composition]);
+
+  const computeLifeProbability = (data: PlanetPreviewProps['planetData']) => {
+    if (!data) return { prob: 0, breakdown: {} };
+
+    const orbital = data.signal_params?.orbital_period?.value ?? null;
+  const transitDepth = data.signal_params?.transit_depth?.value ?? null;
+  const impact = data.signal_params?.impact_parameter?.value ?? null;
+
+    const pMass = data.candidate_params?.mass?.value ?? null; // in Earth masses
+    const pRadius = data.candidate_params?.radius?.value ?? null; // in Earth radii
+
+    const sMass = data.star_params?.mass?.value ?? 1.0; // solar mass
+  const sTeff = data.star_params?.effective_temperature?.value ?? 5800; // Kelvin
+
+    // star temperature score: best ~5800K (Sun). gaussian falloff
+    const starSigma = 800;
+    const starScore = Math.exp(-Math.pow((sTeff - 5800) / starSigma, 2));
+
+    // orbit/habitable zone proxy: target period scales ~ sqrt(star mass) (Kepler's 3rd law simplification)
+    const targetPeriod = 365 * Math.sqrt(Math.max(0.1, sMass));
+    const orbitSigma = Math.max(40, targetPeriod * 0.5);
+    const orbitScore = orbital ? Math.exp(-Math.pow((orbital - targetPeriod) / orbitSigma, 2)) : 0.5;
+
+    // radius score: small rocky worlds (0.5-2 Rearth) are best. Larger -> gaseous, worse.
+    let radiusScore = 0.5;
+    if (pRadius != null) {
+      if (pRadius <= 2) radiusScore = 0.95;
+      else if (pRadius <= 4) radiusScore = 0.6;
+      else if (pRadius <= 8) radiusScore = 0.25;
+      else radiusScore = 0.05;
+    }
+
+    // density proxy: mass / radius^3 (in Earth units) -> higher means rocky; low means gaseous
+    let densityScore = 0.5;
+    if (pMass != null && pRadius != null && pRadius > 0) {
+      const densityProxy = pMass / Math.max(1e-6, Math.pow(pRadius, 3)); // Earth density ~1
+      // map densityProxy: around 0.8-5 -> good
+      const d = Math.min(5, Math.max(0, (densityProxy - 0.2) / (5 - 0.2)));
+      densityScore = Math.max(0, Math.min(1, d));
+    }
+
+    // transit quality: deep transits on small stars might indicate large planets -> reduce
+    let transitScore = 0.5;
+    if (transitDepth != null) {
+      // assume transitDepth is fractional (0.015 ~ 1.5%)
+      // deeper than 5% likely giant -> bad
+      transitScore = transitDepth < 0.02 ? 0.8 : transitDepth < 0.05 ? 0.4 : 0.05;
+    }
+
+    // impact parameter: grazing transits (b~1) reduce confidence
+    const impactScore = impact != null ? Math.max(0, 1 - Math.abs(impact)) : 0.9;
+
+    // combine with weights (include impact as a small factor)
+    const weights = {
+      star: 0.17,
+      orbit: 0.27,
+      radius: 0.21,
+      density: 0.18,
+      transit: 0.07,
+      impact: 0.10,
+    };
+
+    const combined =
+      starScore * weights.star +
+      orbitScore * weights.orbit +
+      radiusScore * weights.radius +
+      densityScore * weights.density +
+      transitScore * weights.transit +
+      impactScore * weights.impact;
+
+    // final probability scaled to 0..1 and slightly penalize very large planets
+    let penalty = 1;
+    if (pRadius != null && pRadius > 6) penalty = 0.4;
+    else if (pRadius != null && pRadius > 3) penalty = 0.75;
+
+    const prob = Math.max(0, Math.min(1, combined * penalty));
+
+    const breakdown = {
+      star: parseFloat((starScore).toFixed(3)),
+      orbit: parseFloat((orbitScore).toFixed(3)),
+      radius: parseFloat((radiusScore).toFixed(3)),
+      density: parseFloat((densityScore).toFixed(3)),
+      transit: parseFloat((transitScore).toFixed(3)),
+      combined: parseFloat((prob).toFixed(3)),
+    };
+
+    return { prob, breakdown };
+  };
+
+  // compute life probability when in custom preset and planetData is provided
+  useEffect(() => {
+    if (preset !== 'custom') {
+      setLifeProbability(null);
+      setLifeBreakdown(null);
+      return;
+    }
+    if (!planetData) {
+      setLifeProbability(null);
+      setLifeBreakdown(null);
+      return;
+    }
+
+    const { prob, breakdown } = computeLifeProbability(planetData);
+    setLifeProbability(Math.round(prob * 100));
+    setLifeBreakdown(breakdown);
+  }, [preset, planetData]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -356,6 +481,21 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
           </button>
           <button onClick={() => setPreset('custom')} aria-pressed={preset === 'custom'} style={{ padding: '8px 10px', borderRadius: 8, background: preset === 'custom' ? 'rgba(255,255,255,0.04)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>Custom</button>
         </div>
+        {preset === 'custom' && lifeProbability != null ? (
+          <div style={{ marginTop: 12, padding: 10, background: 'rgba(0,0,0,0.24)', borderRadius: 8 }}>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 6 }}>Probabilidade de vida</div>
+            <div style={{ fontWeight: 800, fontSize: 22 }}>{lifeProbability}%</div>
+            {lifeBreakdown ? (
+              <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,255,255,0.75)', display: 'grid', gap: 4 }}>
+                <div>Star: {Math.round((lifeBreakdown.star || 0) * 100)}%</div>
+                <div>Orbit: {Math.round((lifeBreakdown.orbit || 0) * 100)}%</div>
+                <div>Radius: {Math.round((lifeBreakdown.radius || 0) * 100)}%</div>
+                <div>Density: {Math.round((lifeBreakdown.density || 0) * 100)}%</div>
+                <div>Transit: {Math.round((lifeBreakdown.transit || 0) * 100)}%</div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

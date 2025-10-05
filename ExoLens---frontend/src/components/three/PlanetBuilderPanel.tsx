@@ -92,7 +92,28 @@ export default function PlanetBuilderPanel({ onClose }: { onClose: () => void })
       </div>
       <div className="generator-right">
         <div className="preview-shell">
-          <PlanetPreview3D color={planet.color} composition={planet.composition} radius={(planet.radius && Math.max(0.2, planet.radius)) || 1} />
+          <PlanetPreview3D
+            color={planet.color}
+            composition={planet.composition}
+            radius={(planet.radius && Math.max(0.2, planet.radius)) || 1}
+            planetData={{
+              signal_params: {
+                orbital_period: { value: 326.03, error: 0.32, unit: 'days' },
+                transit_duration: { value: 5.4, error: 0.1, unit: 'hours' },
+                transit_depth: { value: 0.015, error: 0.001 },
+                impact_parameter: { value: 0.5, error: 0.05 },
+              },
+              candidate_params: {
+                mass: { value: planet.mass ?? 1, error: 0, unit: 'earth_mass' },
+                radius: { value: planet.radius ?? 1, error: 0, unit: 'earth_radius' },
+              },
+              star_params: {
+                mass: { value: 0.98, error: 0.02, unit: 'solar_mass' },
+                radius: { value: 1.02, error: 0.03, unit: 'solar_radius' },
+                effective_temperature: { value: 5700, error: 50, unit: 'kelvin' },
+              },
+            }}
+          />
         </div>
       </div>
     </div>
