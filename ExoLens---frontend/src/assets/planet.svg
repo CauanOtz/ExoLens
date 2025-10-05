@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="pgrad" cx="30%" cy="30%">
+      <stop offset="0%" stop-color="#ffd27f" />
+      <stop offset="60%" stop-color="#ff9e5a" />
+      <stop offset="100%" stop-color="#b24b2b" />
+    </radialGradient>
+    <filter id="f" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="b" />
+      <feMerge><feMergeNode in="b"/></feMerge>
+    </filter>
+  </defs>
+  <g>
+    <circle cx="200" cy="200" r="130" fill="url(#pgrad)" />
+    <g opacity="0.12" fill="#fff">
+      <ellipse cx="150" cy="150" rx="60" ry="20" transform="rotate(-25 150 150)" />
+      <ellipse cx="250" cy="230" rx="80" ry="28" transform="rotate(15 250 230)" />
+    </g>
+    <g transform="translate(60,260) rotate(-20)" opacity="0.18">
+      <rect x="0" y="0" width="300" height="18" rx="9" fill="#3b2b2b"/>
+    </g>
+    <!-- subtle glow -->
+    <circle cx="200" cy="200" r="160" fill="#ffb57a" opacity="0.06" filter="url(#f)" />
+  </g>
+</svg>
