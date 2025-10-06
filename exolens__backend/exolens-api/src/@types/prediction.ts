@@ -1,5 +1,3 @@
-import { MassUnit, RadiusUnit, TimeUnit, TemperatureUnit } from './units'; 
- 
  //Parametros usados na predição
 
 //parametros da estrela
@@ -23,6 +21,7 @@ export type CandidateParams = {
   radius_value: number;
   radius_error: number;
   radius_unit: string;
+  equilibrium_temp: number;
 };
 
 //parametros do sinal
@@ -37,5 +36,5 @@ export type SignalParams = {
   transit_duration_unit: string;
   transit_depth_value: number;
   transit_depth_error: number;
-
+  signal_to_noise: number;
 };

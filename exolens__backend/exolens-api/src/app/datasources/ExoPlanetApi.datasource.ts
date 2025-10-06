@@ -13,7 +13,7 @@ import NodeCache from 'node-cache';
 const NASA_API_BASE_URL = process.env.NASA_API_BASE_URL || 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
 const NASA_API_FORMAT = 'json';
 const NASA_TABLE_NAME = 'cumulative';
-const NASA_API_COLUMNS = 'kepler_name,koi_score,koi_disposition,koi_prad,koi_prad_err1,koi_duration,koi_duration_err1,koi_period,koi_period_err1,koi_smass,koi_smass_err1,koi_steff,koi_steff_err1,koi_srad,koi_srad_err1,koi_depth,koi_depth_err1,koi_impact,koi_impact_err1';
+const NASA_API_COLUMNS = 'kepler_name,koi_score,koi_disposition,koi_prad,koi_prad_err1,koi_duration,koi_duration_err1,koi_period,koi_period_err1,koi_smass,koi_smass_err1,koi_steff,koi_steff_err1,koi_srad,koi_srad_err1,koi_depth,koi_depth_err1,koi_impact,koi_impact_err1,koi_teq,koi_model_snr';
 
 interface NasaExoPlanet {
     kepler_name: string;
@@ -35,6 +35,8 @@ interface NasaExoPlanet {
     koi_depth_err1: number | null;
     koi_impact: number | null;
     koi_impact_err1: number | null;
+    koi_teq: number | null; 
+    koi_model_snr: number | null; 
 }
 
 type InternalPrediction = {
@@ -120,6 +122,7 @@ export class ExoPlanetApiDataSource implements IExoPlanetDataSource {
                 radius_value: planet.koi_prad ?? 0,
                 radius_error: planet.koi_prad_err1 ?? 0,
                 radius_unit: 'Earth Radius',
+                equilibrium_temp: planet.koi_teq ?? 0,
             },
             signalParams: {
                 transit_duration_value: planet.koi_duration ?? 0,
@@ -132,6 +135,7 @@ export class ExoPlanetApiDataSource implements IExoPlanetDataSource {
                 transit_depth_error: planet.koi_depth_err1 ?? 0,
                 impact_parameter_value: planet.koi_impact ?? 0,
                 impact_parameter_error: planet.koi_impact_err1 ?? 0,
+                signal_to_noise: planet.koi_model_snr ?? 0,
             },
             starParams: {
                 mass_value: planet.koi_smass ?? 0,
