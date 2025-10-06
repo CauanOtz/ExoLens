@@ -62,7 +62,6 @@ export class PredictionService {
     }
 
     /**
-     * Ponto de entrada para predições vindas de um arquivo CSV.
      */
     async predictFromCsv(fileBuffer: Buffer) {
         const records = await this._parseCsv(fileBuffer);
