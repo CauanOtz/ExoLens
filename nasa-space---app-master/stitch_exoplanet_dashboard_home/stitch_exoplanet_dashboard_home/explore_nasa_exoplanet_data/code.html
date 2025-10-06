@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Exoplanet Search</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#0da6f2",
+            "background-light": "#f5f7f8",
+            "background-dark": "#101c22",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-dark group/design-root overflow-x-hidden">
+<div class="flex flex-col flex-1">
+<div class="flex items-center bg-[#101d23] p-4 pb-2 justify-between">
+<span class="material-symbols-outlined text-white text-3xl">hub</span>
+<h2 class="text-white text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Exoplanet Search</h2>
+<div class="w-8"></div>
+</div>
+<div class="px-4 py-3">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-primary flex border-none bg-[#1c2a33] items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-white focus:outline-0 focus:ring-0 border-none bg-[#1c2a33] focus:border-none h-full placeholder:text-[#90b7cb] px-4 text-base font-normal leading-normal" placeholder="Search by Kepler or TESS ID" value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-wrap gap-4 px-4 py-6">
+<div class="flex min-w-72 flex-1 flex-col gap-2">
+<p class="text-white text-base font-medium leading-normal">Light Curve</p>
+<p class="text-white tracking-light text-[32px] font-bold leading-tight truncate">Kepler-186f</p>
+<div class="flex gap-1 items-center">
+<p class="text-[#90b7cb] text-base font-normal leading-normal">Flux Variation</p>
+<p class="text-primary text-base font-medium leading-normal">+0.04%</p>
+</div>
+<div class="flex min-h-[180px] flex-1 flex-col gap-8 py-4">
+<svg fill="none" height="148" preserveaspectratio="none" viewbox="-3 0 478 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<lineargradient gradientunits="userSpaceOnUse" id="paint0_linear_custom" x1="236" x2="236" y1="1" y2="149">
+<stop stop-color="#0da6f2" stop-opacity="0.3"></stop>
+<stop offset="1" stop-color="#101c22" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V149H326.769H0V109Z" fill="url(#paint0_linear_custom)"></path>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" stroke="#0da6f2" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="flex justify-around"></div>
+</div>
+</div>
+</div>
+<div class="p-4 grid grid-cols-[35%_1fr] gap-x-6">
+<div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#315668] py-4">
+<p class="text-[#90b7cb] text-sm font-normal leading-normal">Magnitude</p>
+<p class="text-white text-sm font-normal leading-normal">14.9</p>
+</div>
+<div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#315668] py-4">
+<p class="text-[#90b7cb] text-sm font-normal leading-normal">Temperature</p>
+<p class="text-white text-sm font-normal leading-normal">3,780 K</p>
+</div>
+<div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#315668] py-4">
+<p class="text-[#90b7cb] text-sm font-normal leading-normal">Radius</p>
+<p class="text-white text-sm font-normal leading-normal">0.47 R☉</p>
+</div>
+<div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#315668] py-4 items-center">
+<p class="text-[#90b7cb] text-sm font-normal leading-normal">Confirmed Planet</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-green-400">verified</span>
+<p class="text-green-400 text-sm font-medium leading-normal">Confirmed</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sticky bottom-0">
+<div class="flex gap-2 border-t border-[#1c2a33] bg-[#101c22] px-4 pb-3 pt-2">
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-primary" href="#">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">search</span>
+<p class="text-primary text-xs font-medium leading-normal tracking-[0.015em]">Search</p>
+</a>
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#90b7cb]" href="#">
+<span class="material-symbols-outlined text-3xl">star</span>
+<p class="text-[#90b7cb] text-xs font-medium leading-normal tracking-[0.015em]">Favorites</p>
+</a>
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#90b7cb]" href="#">
+<span class="material-symbols-outlined text-3xl">person</span>
+<p class="text-[#90b7cb] text-xs font-medium leading-normal tracking-[0.015em]">Profile</p>
+</a>
+</div>
+</div>
+</div>
+</body></html>

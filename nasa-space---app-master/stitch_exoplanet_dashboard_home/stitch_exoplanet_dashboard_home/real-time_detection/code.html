@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Exoplanet Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da6f2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .confidence-bar {
+            background: linear-gradient(to right, #f2c94c var(--confidence-level), #1f3a48 var(--confidence-level));
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-[#101d23]">
+<div class="flex items-center bg-[#101d23] p-4 pb-2 justify-between">
+<span class="material-symbols-outlined text-white text-4xl">public</span>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 ml-3">Exoplanet Detection</h2>
+</div>
+<h1 class="text-white tracking-light text-[32px] font-bold leading-tight px-4 text-left pb-3 pt-6">Real-Time Exoplanet Predictions</h1>
+<div class="flex px-4 py-3 justify-start items-center space-x-4">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]">
+<span class="material-symbols-outlined">wifi</span>
+<span class="truncate">Connect Real-Time</span>
+</button>
+<div class="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+</div>
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-[#182b34] p-4">
+<div class="flex items-center justify-between gap-4">
+<p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">K00752.01</p>
+<p class="text-[#90b7cb] text-base font-normal leading-normal">Received: 14:32:15 UTC</p>
+</div>
+<div class="mt-3">
+<p class="text-[#90b7cb] text-base font-normal leading-normal mb-1">Confidence: 85%</p>
+<div class="w-full h-2.5 rounded-full bg-[#1f3a48]">
+<div class="h-2.5 rounded-full confidence-bar" style="--confidence-level: 85%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 pt-0 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-[#182b34] p-4">
+<div class="flex items-center justify-between gap-4">
+<p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">K00753.01</p>
+<p class="text-[#90b7cb] text-base font-normal leading-normal">Received: 14:35:15 UTC</p>
+</div>
+<div class="mt-3">
+<p class="text-[#90b7cb] text-base font-normal leading-normal mb-1">Confidence: 62%</p>
+<div class="w-full h-2.5 rounded-full bg-[#1f3a48]">
+<div class="h-2.5 rounded-full confidence-bar" style="--confidence-level: 62%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 pt-0 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-[#182b34] p-4">
+<div class="flex items-center justify-between gap-4">
+<p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">K00754.01</p>
+<p class="text-[#90b7cb] text-base font-normal leading-normal">Received: 14:38:22 UTC</p>
+</div>
+<div class="mt-3">
+<p class="text-[#90b7cb] text-base font-normal leading-normal mb-1">Confidence: 95%</p>
+<div class="w-full h-2.5 rounded-full bg-[#1f3a48]">
+<div class="h-2.5 rounded-full confidence-bar" style="--confidence-level: 95%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex px-4 py-3 justify-start">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-transparent border border-primary text-primary gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]">
+<span class="material-symbols-outlined">biotech</span>
+<span class="truncate">Send Test Candidate</span>
+</button>
+</div>
+</div>
+</body></html>

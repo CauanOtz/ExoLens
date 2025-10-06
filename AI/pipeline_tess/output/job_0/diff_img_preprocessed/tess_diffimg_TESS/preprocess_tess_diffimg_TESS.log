@@ -34,3 +34,18 @@
 2025-10-05 21:54:49,610 - [tess_diffimg_TESS] At least one data array contained missing values for 167526485-2-S1-39. Setting data to placeholder value.
 2025-10-05 21:54:49,612 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
 2025-10-05 21:54:49,644 - [tess_diffimg_TESS] Finished preprocessing difference image data for 3 examples.
+2025-10-06 00:04:18,117 - [tess_diffimg_TESS.npy] Starting preprocessing...
+2025-10-06 00:04:18,118 - Loading difference image data from /app/output/job_0/diff_img_extracted/tess_diffimg_TESS.npy
+2025-10-06 00:04:18,159 - Number of TCEs to preprocess: 9
+2025-10-06 00:04:18,159 - [tess_diffimg_TESS] Preprocessed 1 example(s) out of 9.
+2025-10-06 00:04:18,172 - [tess_diffimg_TESS] At least one data array contained missing values for 167719618-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,177 - [tess_diffimg_TESS] At least one data array contained missing values for 418255064-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,184 - [tess_diffimg_TESS] At least one data array contained missing values for 350299588-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,194 - [tess_diffimg_TESS] At least one data array contained missing values for 255560319-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,205 - [tess_diffimg_TESS] At least one data array contained missing values for 177077336-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,218 - [tess_diffimg_TESS] At least one data array contained missing values for 374829238-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,234 - [tess_diffimg_TESS] At least one data array contained missing values for 167342439-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,245 - [tess_diffimg_TESS] At least one data array contained missing values for 219195044-1-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,258 - [tess_diffimg_TESS] At least one data array contained missing values for 219195044-2-S1-39. Setting data to placeholder value.
+2025-10-06 00:04:18,260 - Saving preprocessed data to /app/output/job_0/diff_img_preprocessed/tess_diffimg_TESS/diffimg_preprocess.npy...
+2025-10-06 00:04:18,367 - [tess_diffimg_TESS] Finished preprocessing difference image data for 9 examples.

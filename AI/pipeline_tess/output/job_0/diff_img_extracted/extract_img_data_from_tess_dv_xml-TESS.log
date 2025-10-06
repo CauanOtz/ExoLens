@@ -1,8 +1,89 @@
-2025-10-05 21:54:48,513 - [0] Starting run TESS...
-2025-10-05 21:54:49,069 - [49] Found 2 targets DV xml files in 2.
-2025-10-05 21:54:49,074 - [49] Found 2 targets DV xml files in 2 after excluding files using targets-sector runs table.
-2025-10-05 21:54:49,075 - [49] [Sector run 6] Iterating over TIC 0/2 in tess2018349182737-s0006-s0006-0000000167526485-00415_dvr.xml.
-2025-10-05 21:54:49,096 - [49] [Sector run 6] Getting difference image data for TCE TIC 167526485-1-S6 (1/1 TCEs)...
-2025-10-05 21:54:49,384 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 167526485-1-S1-39 (1/2 TCEs)...
-2025-10-05 21:54:49,415 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 167526485-2-S1-39 (2/2 TCEs)...
-2025-10-05 21:54:49,456 - [0] Finished run TESS.
+2025-10-06 00:04:02,767 - [0] Starting run TESS...
+2025-10-06 00:04:03,633 - [49] Found 10 targets DV xml files in 10.
+2025-10-06 00:04:03,672 - [49] Found 8 targets DV xml files in 8 after excluding files using targets-sector runs table.
+2025-10-06 00:04:03,673 - [49] [Sector run 1-39] Iterating over TIC 0/8 in tess2018206190142-s0001-s0039-0000000167719618-00493_dvr.xml.
+2025-10-06 00:04:03,855 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 167719618-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:03,857 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 1.
+2025-10-06 00:04:03,859 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 2.
+2025-10-06 00:04:03,860 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 3.
+2025-10-06 00:04:03,861 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 4.
+2025-10-06 00:04:03,862 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 5.
+2025-10-06 00:04:03,863 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 6.
+2025-10-06 00:04:03,864 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 7.
+2025-10-06 00:04:03,867 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 10.
+2025-10-06 00:04:03,868 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 11.
+2025-10-06 00:04:03,869 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 12.
+2025-10-06 00:04:03,870 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 13.
+2025-10-06 00:04:03,871 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 27.
+2025-10-06 00:04:03,872 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 28.
+2025-10-06 00:04:03,873 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 29.
+2025-10-06 00:04:03,874 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 30.
+2025-10-06 00:04:03,875 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 31.
+2025-10-06 00:04:03,876 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 32.
+2025-10-06 00:04:03,877 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 33.
+2025-10-06 00:04:03,879 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 35.
+2025-10-06 00:04:03,880 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 36.
+2025-10-06 00:04:03,882 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 37.
+2025-10-06 00:04:03,883 - [49] [Sector run 1-39] TCE TIC 167719618-1-S1-39 has missing reference centroid for target in sector 38.
+2025-10-06 00:04:03,904 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 418255064-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:03,905 - [49] [Sector run 1-39] TCE TIC 418255064-1-S1-39 has missing reference centroid for target in sector 11.
+2025-10-06 00:04:03,907 - [49] [Sector run 1-39] TCE TIC 418255064-1-S1-39 has missing reference centroid for target in sector 38.
+2025-10-06 00:04:03,973 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 350299588-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:03,974 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 1.
+2025-10-06 00:04:03,976 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 2.
+2025-10-06 00:04:03,977 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 3.
+2025-10-06 00:04:03,978 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 4.
+2025-10-06 00:04:03,980 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 5.
+2025-10-06 00:04:03,981 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 6.
+2025-10-06 00:04:03,983 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 8.
+2025-10-06 00:04:03,984 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 9.
+2025-10-06 00:04:03,985 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 10.
+2025-10-06 00:04:03,986 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 11.
+2025-10-06 00:04:03,987 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 12.
+2025-10-06 00:04:03,988 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 13.
+2025-10-06 00:04:03,989 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 27.
+2025-10-06 00:04:03,991 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 28.
+2025-10-06 00:04:03,993 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 30.
+2025-10-06 00:04:03,994 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 31.
+2025-10-06 00:04:03,995 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 33.
+2025-10-06 00:04:03,996 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 34.
+2025-10-06 00:04:03,997 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 35.
+2025-10-06 00:04:03,998 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 36.
+2025-10-06 00:04:03,999 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 37.
+2025-10-06 00:04:04,000 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 38.
+2025-10-06 00:04:04,001 - [49] [Sector run 1-39] TCE TIC 350299588-1-S1-39 has missing reference centroid for target in sector 39.
+2025-10-06 00:04:17,495 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 255560319-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:17,496 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 1.
+2025-10-06 00:04:17,498 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 5.
+2025-10-06 00:04:17,501 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 8.
+2025-10-06 00:04:17,502 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 11.
+2025-10-06 00:04:17,503 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 12.
+2025-10-06 00:04:17,505 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 28.
+2025-10-06 00:04:17,507 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 31.
+2025-10-06 00:04:17,508 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 32.
+2025-10-06 00:04:17,510 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 34.
+2025-10-06 00:04:17,512 - [49] [Sector run 1-39] TCE TIC 255560319-1-S1-39 has missing reference centroid for target in sector 39.
+2025-10-06 00:04:17,590 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 177077336-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:17,664 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 374829238-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:17,670 - [49] [Sector run 1-39] TCE TIC 374829238-1-S1-39 has missing reference centroid for target in sector 12.
+2025-10-06 00:04:17,673 - [49] [Sector run 1-39] TCE TIC 374829238-1-S1-39 has missing reference centroid for target in sector 30.
+2025-10-06 00:04:17,676 - [49] [Sector run 1-39] TCE TIC 374829238-1-S1-39 has missing reference centroid for target in sector 36.
+2025-10-06 00:04:17,747 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 167342439-1-S1-39 (1/1 TCEs)...
+2025-10-06 00:04:17,749 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 2.
+2025-10-06 00:04:17,750 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 4.
+2025-10-06 00:04:17,751 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 5.
+2025-10-06 00:04:17,752 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 6.
+2025-10-06 00:04:17,753 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 7.
+2025-10-06 00:04:17,755 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 8.
+2025-10-06 00:04:17,756 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 9.
+2025-10-06 00:04:17,757 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 11.
+2025-10-06 00:04:17,758 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 12.
+2025-10-06 00:04:17,760 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 28.
+2025-10-06 00:04:17,761 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 29.
+2025-10-06 00:04:17,763 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 31.
+2025-10-06 00:04:17,764 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 33.
+2025-10-06 00:04:17,766 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 35.
+2025-10-06 00:04:17,769 - [49] [Sector run 1-39] TCE TIC 167342439-1-S1-39 has missing reference centroid for target in sector 39.
+2025-10-06 00:04:17,986 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 219195044-1-S1-39 (1/2 TCEs)...
+2025-10-06 00:04:17,997 - [49] [Sector run 1-39] Getting difference image data for TCE TIC 219195044-2-S1-39 (2/2 TCEs)...
+2025-10-06 00:04:18,083 - [0] Finished run TESS.

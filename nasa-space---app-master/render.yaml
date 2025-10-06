@@ -1,0 +1,31 @@
+services:
+  # Backend API Service
+  - type: web
+    name: nasa-exoplanet-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn api_predict:app --host 0.0.0.0 --port $PORT"
+    autoDeploy: false
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+
+  # Frontend React App
+  - type: web
+    name: nasa-exoplanet-frontend
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: build
+    autoDeploy: false
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://nasa-exoplanet-backend.onrender.com
+
+# Alternative: Single service deployment (if you prefer)
+# - type: web
+#   name: nasa-exoplanet-fullstack
+#   env: python
+#   buildCommand: "pip install -r requirements.txt && npm install"
+#   startCommand: "python api_predict.py & cd frontend && npm start"
+#   autoDeploy: false

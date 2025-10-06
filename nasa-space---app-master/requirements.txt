@@ -1,0 +1,15 @@
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+torch
+torchvision
+torchaudio
+tqdm
+lightning-bolts
+tensorboard
+shap
+fastapi
+uvicorn
+python-multipart
