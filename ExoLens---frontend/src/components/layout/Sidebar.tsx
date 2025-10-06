@@ -3,11 +3,12 @@ import { NavLink } from 'react-router-dom';
 import { MiniPlanet } from '../three/MiniPlanet';
 import './Sidebar.css';
 
+type PlanetType = 'mars' | 'earth' | 'jupiter';
 
-const items: { to: string; label: string;  }[] = [
-  { to: '/dashboard', label: 'Mars' },
-  { to: '/dashboard/activity', label: 'Earth' },
-  { to: '/settings', label: 'Jupiter' },
+const items: { to: string; label: string; planetType: PlanetType }[] = [
+  { to: '/dashboard', label: 'Mars', planetType: 'mars' },
+  { to: '/dashboard/activity', label: 'Earth', planetType: 'earth' },
+  { to: '/settings', label: 'Jupiter', planetType: 'jupiter' },
 ];
 
 export function Sidebar() {
@@ -40,6 +41,13 @@ export function Sidebar() {
             }}
             aria-label={it.label}
           >
+            <span className="planet-sphere small">
+              <MiniPlanet 
+                type={it.planetType} 
+                size={52} 
+                isHovered={hoveredIndex === index}
+              />
+            </span>
             <span className="planet-label">{it.label}</span>
           </NavLink>
         ))}

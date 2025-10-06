@@ -3,40 +3,181 @@ import * as THREE from 'three';
 // OrbitControls lives in the examples directory; import with ts-ignore for compatibility
 // @ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import EarthModel from './EarthModel';
+import JupiterModel from './JupiterModel';
+import SunModel from './SunModel';
+import MarsModel from './MarsModel';
+import MercuryModel from './MercuryModel';
+import NeptuneModel from './NeptuneModel';
+import SaturnModel from './SaturnModel';
+const earthIcon = new URL('../../assets/earth.svg', import.meta.url).href;
 
 interface PlanetPreviewProps {
   color?: string;
   radius?: number;
   composition?: 'rocky' | 'gaseous' | 'icy';
+  planetData?: {
+    signal_params?: {
+      orbital_period?: { value: number; error?: number; unit?: string };
+      transit_duration?: { value: number; error?: number; unit?: string };
+      transit_depth?: { value: number; error?: number };
+      impact_parameter?: { value: number; error?: number };
+    };
+    candidate_params?: {
+      mass?: { value: number; error?: number; unit?: string };
+      radius?: { value: number; error?: number; unit?: string };
+    };
+    star_params?: {
+      mass?: { value: number; error?: number; unit?: string };
+      radius?: { value: number; error?: number; unit?: string };
+      effective_temperature?: { value: number; error?: number; unit?: string };
+    };
+  };
 }
 
-export default function PlanetPreview3D({ color = '#c66', radius = 1, composition = 'rocky' }: PlanetPreviewProps) {
+export default function PlanetPreview3D({ color = '#c66', radius = 1, composition = 'rocky', planetData }: PlanetPreviewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const [preset, setPreset] = useState<'custom' | 'earth' | 'jupiter' | 'sun' | 'mars' | 'mercury' | 'neptune' | 'saturn'>('custom');
   const [internalColor, setInternalColor] = useState(color);
   const [internalRadius, setInternalRadius] = useState(radius);
   const [internalComposition, setInternalComposition] = useState<typeof composition>(composition);
-  const [overlayPos, setOverlayPos] = useState<{ left: number; top: number }>({ left: 16, top: 16 });
+  const [lifeProbability, setLifeProbability] = useState<number | null>(null);
+  const [lifeBreakdown, setLifeBreakdown] = useState<Record<string, number> | null>(null);
 
   useEffect(() => {
-    // Always follow the passed props for the custom preview
-    setInternalColor(color);
-    setInternalRadius(radius);
-    setInternalComposition(composition);
-  }, [color, radius, composition]);
+    // apply preset values
+    if (preset === 'earth') {
+      setInternalColor('#2a66d6');
+      setInternalRadius(1.0);
+      setInternalComposition('rocky');
+    } else {
+      setInternalColor(color);
+      setInternalRadius(radius);
+      setInternalComposition(composition);
+    }
+  }, [preset, color, radius, composition]);
+
+  const computeLifeProbability = (data: PlanetPreviewProps['planetData']) => {
+    if (!data) return { prob: 0, breakdown: {} };
+
+    const orbital = data.signal_params?.orbital_period?.value ?? null;
+  const transitDepth = data.signal_params?.transit_depth?.value ?? null;
+  const impact = data.signal_params?.impact_parameter?.value ?? null;
+
+    const pMass = data.candidate_params?.mass?.value ?? null; // in Earth masses
+    const pRadius = data.candidate_params?.radius?.value ?? null; // in Earth radii
+
+    const sMass = data.star_params?.mass?.value ?? 1.0; // solar mass
+  const sTeff = data.star_params?.effective_temperature?.value ?? 5800; // Kelvin
+
+    // star temperature score: best ~5800K (Sun). gaussian falloff
+    const starSigma = 800;
+    const starScore = Math.exp(-Math.pow((sTeff - 5800) / starSigma, 2));
+
+    // orbit/habitable zone proxy: target period scales ~ sqrt(star mass) (Kepler's 3rd law simplification)
+    const targetPeriod = 365 * Math.sqrt(Math.max(0.1, sMass));
+    const orbitSigma = Math.max(40, targetPeriod * 0.5);
+    const orbitScore = orbital ? Math.exp(-Math.pow((orbital - targetPeriod) / orbitSigma, 2)) : 0.5;
+
+    // radius score: small rocky worlds (0.5-2 Rearth) are best. Larger -> gaseous, worse.
+    let radiusScore = 0.5;
+    if (pRadius != null) {
+      if (pRadius <= 2) radiusScore = 0.95;
+      else if (pRadius <= 4) radiusScore = 0.6;
+      else if (pRadius <= 8) radiusScore = 0.25;
+      else radiusScore = 0.05;
+    }
+
+    // density proxy: mass / radius^3 (in Earth units) -> higher means rocky; low means gaseous
+    let densityScore = 0.5;
+    if (pMass != null && pRadius != null && pRadius > 0) {
+      const densityProxy = pMass / Math.max(1e-6, Math.pow(pRadius, 3)); // Earth density ~1
+      // map densityProxy: around 0.8-5 -> good
+      const d = Math.min(5, Math.max(0, (densityProxy - 0.2) / (5 - 0.2)));
+      densityScore = Math.max(0, Math.min(1, d));
+    }
+
+    // transit quality: deep transits on small stars might indicate large planets -> reduce
+    let transitScore = 0.5;
+    if (transitDepth != null) {
+      // assume transitDepth is fractional (0.015 ~ 1.5%)
+      // deeper than 5% likely giant -> bad
+      transitScore = transitDepth < 0.02 ? 0.8 : transitDepth < 0.05 ? 0.4 : 0.05;
+    }
+
+    // impact parameter: grazing transits (b~1) reduce confidence
+    const impactScore = impact != null ? Math.max(0, 1 - Math.abs(impact)) : 0.9;
+
+    // combine with weights (include impact as a small factor)
+    const weights = {
+      star: 0.17,
+      orbit: 0.27,
+      radius: 0.21,
+      density: 0.18,
+      transit: 0.07,
+      impact: 0.10,
+    };
+
+    const combined =
+      starScore * weights.star +
+      orbitScore * weights.orbit +
+      radiusScore * weights.radius +
+      densityScore * weights.density +
+      transitScore * weights.transit +
+      impactScore * weights.impact;
+
+    // final probability scaled to 0..1 and slightly penalize very large planets
+    let penalty = 1;
+    if (pRadius != null && pRadius > 6) penalty = 0.4;
+    else if (pRadius != null && pRadius > 3) penalty = 0.75;
+
+    const prob = Math.max(0, Math.min(1, combined * penalty));
+
+    const breakdown = {
+      star: parseFloat((starScore).toFixed(3)),
+      orbit: parseFloat((orbitScore).toFixed(3)),
+      radius: parseFloat((radiusScore).toFixed(3)),
+      density: parseFloat((densityScore).toFixed(3)),
+      transit: parseFloat((transitScore).toFixed(3)),
+      combined: parseFloat((prob).toFixed(3)),
+    };
+
+    return { prob, breakdown };
+  };
+
+  // compute life probability when in custom preset and planetData is provided
+  useEffect(() => {
+    if (preset !== 'custom') {
+      setLifeProbability(null);
+      setLifeBreakdown(null);
+      return;
+    }
+    if (!planetData) {
+      setLifeProbability(null);
+      setLifeBreakdown(null);
+      return;
+    }
+
+    const { prob, breakdown } = computeLifeProbability(planetData);
+    setLifeProbability(Math.round(prob * 100));
+    setLifeBreakdown(breakdown);
+  }, [preset, planetData]);
 
   useEffect(() => {
-  const mount = mountRef.current;
-  if (!mount) return;
+    const mount = mountRef.current;
+    // if showing the external Earth model, don't initialize the canvas-based preview
+    if (preset === 'earth') return;
+    if (!mount) return;
 
   const width = mount.clientWidth || 400;
   const height = mount.clientHeight || 400;
 
     const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-  camera.position.set(0, 0, Math.max(3, radius * 3.5));
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(0, 0, Math.max(3, radius * 3.5));
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     rendererRef.current = renderer;
@@ -220,33 +361,6 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
     };
     animate();
 
-    // compute overlay position (place the small preview box nearer to the planet)
-    const computeOverlay = () => {
-      if (!mount) return;
-      const w = mount.clientWidth;
-      const h = mount.clientHeight;
-      const cx = w / 2;
-      const cy = h / 2;
-      // approximate sphere screen radius in pixels using perspective projection
-      const cameraZ = camera.position.z;
-      const fovRad = (camera.fov * Math.PI) / 180;
-      const worldHeightAtZ = 2 * cameraZ * Math.tan(fovRad / 2);
-      const pxPerWorld = h / worldHeightAtZ;
-      const spherePxRadius = internalRadius * pxPerWorld;
-
-  // place overlay to the right of the planet, slightly above center
-  // increase horizontal gap so the overlay sits a bit farther from the sphere
-  const left = Math.round(cx + spherePxRadius + 80);
-      const top = Math.round(cy - spherePxRadius * 0.45);
-      setOverlayPos({ left, top: Math.max(8, top) });
-    };
-
-    // initial compute + responsive observer
-    computeOverlay();
-    const roOverlay = new ResizeObserver(computeOverlay);
-    roOverlay.observe(mount);
-    window.addEventListener('resize', computeOverlay);
-
     const ro = new ResizeObserver(() => {
       if (!mount) return;
       const w = mount.clientWidth;
@@ -259,8 +373,6 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
 
     return () => {
       ro.disconnect();
-      roOverlay.disconnect();
-      window.removeEventListener('resize', computeOverlay);
       cancelAnimationFrame(rafId);
       controls.dispose();
 
@@ -295,14 +407,95 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
       renderer.dispose();
       if (renderer.domElement && mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
-  }, [internalColor, internalRadius, internalComposition]);
+  }, [internalColor, internalRadius, internalComposition, preset]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={mountRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
-      <div style={{ position: 'absolute', left: overlayPos.left, top: overlayPos.top, minWidth: 140, background: 'rgba(18,20,24,0.52)', color: '#fff', padding: '8px 10px', borderRadius: 10, fontSize: 13, backdropFilter: 'blur(6px)', boxShadow: '0 8px 24px rgba(2,6,23,0.6)', border: '1px solid rgba(255,255,255,0.04)', pointerEvents: 'auto', transition: 'left 240ms ease, top 240ms ease' }}>
-        <div style={{ fontWeight: 700, marginBottom: 4 }}>Custom preview</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>{internalComposition} • r {internalRadius}</div>
+      {preset === 'earth' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <EarthModel modelPath={undefined} distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'jupiter' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <JupiterModel distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'sun' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <SunModel height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'mars' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <MarsModel distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'mercury' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <MercuryModel distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'neptune' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <NeptuneModel distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : preset === 'saturn' ? (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <SaturnModel distance={12} height={'100%'} controls={true} />
+        </div>
+      ) : (
+        <div ref={mountRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
+      )}
+      <div style={{ position: 'absolute', right: 16, top: 16, width: 200, background: 'rgba(18,20,24,0.52)', color: '#fff', padding: '12px', borderRadius: 12, fontSize: 13, backdropFilter: 'blur(8px)', boxShadow: '0 8px 24px rgba(2,6,23,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <img src={earthIcon} alt="Terra" style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(255,255,255,0.02)', padding: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }} />
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Ver planetas</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Preview interativo</div>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <button onClick={() => setPreset('earth')} aria-pressed={preset === 'earth'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'earth' ? 'linear-gradient(180deg,#2a66d6,#1e4fb8)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <img src={earthIcon} alt="" style={{ width: 18, height: 18, opacity: 0.98 }} />
+            <span style={{ fontWeight: 600 }}>Terra</span>
+          </button>
+          <button onClick={() => setPreset('jupiter')} aria-pressed={preset === 'jupiter'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'jupiter' ? 'linear-gradient(180deg,#d8a24a,#b87f2a)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#e1b07a,#d38a2f)' }} />
+            <span style={{ fontWeight: 600 }}>Júpiter</span>
+          </button>
+          <button onClick={() => setPreset('sun')} aria-pressed={preset === 'sun'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'sun' ? 'linear-gradient(180deg,#ffd07a,#ffb36b)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 18, background: 'radial-gradient(circle at 30% 30%, #fff7df, #ffd07a 40%, #ffb36b 70%)', boxShadow: '0 6px 18px rgba(255,150,50,0.6)' }} />
+            <span style={{ fontWeight: 600 }}>Sol</span>
+          </button>
+          <button onClick={() => setPreset('mars')} aria-pressed={preset === 'mars'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'mars' ? 'linear-gradient(180deg,#d86b4a,#b84f32)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#d96b4a,#b84f32)' }} />
+            <span style={{ fontWeight: 600 }}>Marte</span>
+          </button>
+          <button onClick={() => setPreset('mercury')} aria-pressed={preset === 'mercury'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'mercury' ? 'linear-gradient(180deg,#cfcfcf,#bdbdbd)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#e6e6e6,#bdbdbd)' }} />
+            <span style={{ fontWeight: 600 }}>Mercúrio</span>
+          </button>
+          <button onClick={() => setPreset('neptune')} aria-pressed={preset === 'neptune'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'neptune' ? 'linear-gradient(180deg,#6fb3ff,#2e88ff)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#8bd0ff,#2e88ff)' }} />
+            <span style={{ fontWeight: 600 }}>Netuno</span>
+          </button>
+          <button onClick={() => setPreset('saturn')} aria-pressed={preset === 'saturn'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: preset === 'saturn' ? 'linear-gradient(180deg,#e8d6b0,#caa86f)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+            <span style={{ width: 18, height: 18, display: 'inline-block', borderRadius: 4, background: 'linear-gradient(90deg,#f0e0b8,#caa86f)' }} />
+            <span style={{ fontWeight: 600 }}>Saturno</span>
+          </button>
+          <button onClick={() => setPreset('custom')} aria-pressed={preset === 'custom'} style={{ padding: '8px 10px', borderRadius: 8, background: preset === 'custom' ? 'rgba(255,255,255,0.04)' : 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>Custom</button>
+        </div>
+        {preset === 'custom' && lifeProbability != null ? (
+          <div style={{ marginTop: 12, padding: 10, background: 'rgba(0,0,0,0.24)', borderRadius: 8 }}>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 6 }}>Probabilidade de vida</div>
+            <div style={{ fontWeight: 800, fontSize: 22 }}>{lifeProbability}%</div>
+            {lifeBreakdown ? (
+              <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,255,255,0.75)', display: 'grid', gap: 4 }}>
+                <div>Star: {Math.round((lifeBreakdown.star || 0) * 100)}%</div>
+                <div>Orbit: {Math.round((lifeBreakdown.orbit || 0) * 100)}%</div>
+                <div>Radius: {Math.round((lifeBreakdown.radius || 0) * 100)}%</div>
+                <div>Density: {Math.round((lifeBreakdown.density || 0) * 100)}%</div>
+                <div>Transit: {Math.round((lifeBreakdown.transit || 0) * 100)}%</div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

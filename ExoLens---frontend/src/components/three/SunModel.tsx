@@ -136,6 +136,7 @@ export default function SunModel({ modelUrl, modelPath, distance = 8, height = '
 
         scene.add(root);
       },
+      // progress
       (xhr) => { if (xhr && xhr.lengthComputable) console.debug(`[SunModel] load ${Math.round((xhr.loaded / xhr.total) * 100)}%`); },
       (err) => {
         console.warn('[SunModel] failed to load', err);

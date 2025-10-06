@@ -42,8 +42,4 @@ export class UserService {
         const { password: _, ...userWithoutPassword } = user;
         return { user: userWithoutPassword, token };
     }
-    async logoutUser(userId: string) {
-        
-        return;
-    }
 }

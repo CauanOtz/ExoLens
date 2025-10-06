@@ -1,9 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './index.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import DashboardPage from './pages/Dashboard/DashboardPage'
-import { AboutSection } from './pages/Settings/AboutSection'
 import TransitPage from './pages/Transit/TransitPage'
 
 createRoot(document.getElementById('root')!).render(
@@ -12,9 +11,8 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/dashboard/activity" element={<DashboardPage />} />
-        <Route path="/transit" element={<TransitPage />} />
-        <Route path="/settings" element={<AboutSection />} />
+  <Route path="/dashboard/activity" element={<DashboardPage />} />
+  <Route path="/transit" element={<TransitPage />} />
         {/* Future routes */}
       </Routes>
     </BrowserRouter>

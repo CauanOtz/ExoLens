@@ -14,26 +14,11 @@ const swaggerOptions: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`, 
-      },
-    ],
-  
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',       
-          scheme: 'bearer',    
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-    security: [
-      {
-        bearerAuth: [],
+        url: `http://localhost:${PORT}`,
       },
     ],
   },
-  apis: ['./src/infra/http/routes/*.ts'],
+  apis: ['./src/infra/http/routes/*.ts'], 
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);

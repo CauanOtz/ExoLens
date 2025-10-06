@@ -1,24 +1,20 @@
 import { RegisterPredicitionDTO, FormattedPredictionDTO, formatPredictionForResponse, formatPredictionByViewSchema } from '../validators/predictionValidator';
-import { NotFoundError, BadRequestError } from '../../core/errors/AppError';
+import { NotFoundError } from '../../core/errors/AppError';
+import { get } from 'http';
 import { PredictionRepository } from './../repositories/PredicitionRepository';
 import { createStarParams, createCandidateParams, createSignalParams} from '../factories/PredictionParamsFactory';
-import { transformToMLInput } from '../../core/mappers/prediction.mapper';
-import { parse } from 'csv-parse';
-import { finished } from 'stream/promises';
-
 export class PredictionService {
 
     constructor(private predictionRepository: PredictionRepository) {}
 
     async registerPrediction(predictionData: RegisterPredicitionDTO) {
-
+        // Fix typo and add createdAt property
         const predictionToCreate = {
             ...predictionData,
             createdAt: new Date(),
             starParams: createStarParams(predictionData.starParams),
             candidateParams: createCandidateParams(predictionData.candidateParams),
             signalParams: createSignalParams(predictionData.signalParams),
-            existingData: false,
         };
         return this.predictionRepository.createPrediction(predictionToCreate);
     }
@@ -40,149 +36,9 @@ export class PredictionService {
     async getAllPredictionsByUserId(userId: string) {
         const predictions = await this.predictionRepository.findAllByUserId(userId);
         if(predictions.length === 0) {
-            return []
+            throw new NotFoundError('No predictions found for this user');
         }
 
         return predictions.map(prediction => formatPredictionByViewSchema(prediction as any));
-    }
-    
-    async deletePredictionById(id: string) {
-        const prediction = await this.predictionRepository.findById(id);
-        if(!prediction) {
-            throw new NotFoundError('Prediction not found');
-        }
-        await this.predictionRepository.deleteById(id);
-    }
-
-    async predictFromForm(data: RegisterPredicitionDTO): Promise<any> {
-        this._validateMinimumFeatures(data);
-        
-        const result = await this._callAiModel(data);
-        return result;
-    }
-
-    /**
-     */
-    async predictFromCsv(fileBuffer: Buffer) {
-        const records = await this._parseCsv(fileBuffer);
-
-        const predictionPromises = records.map(async (csvRow) => {
-            try {
-                const predictionInput = this._mapCsvRowToRegisterPredictionDTO(csvRow);
-                
-                this._validateMinimumFeatures(predictionInput);
-                
-                return await this._callAiModel(predictionInput);
-            } catch (error: any) {
-                return { error: `Falha na linha: ${JSON.stringify(csvRow)}`, details: error.message ?? 'Unknown error' };
-            }
-        });
-
-        return Promise.all(predictionPromises);
-    }
-    
-
-    private async _callAiModel(predictionData: RegisterPredicitionDTO): Promise<any> {
-        const mlPayload = transformToMLInput(predictionData);
-
-
-        const aiResult = {
-            explicacao_xgboost: { /* ... */ },
-            probabilidade_final: [0.0534]
-        };
-
-  
-        return {
-            finalProbability: aiResult.probabilidade_final[0],
-            featureContributions: aiResult.explicacao_xgboost,
-            inputData: predictionData 
-        };
-    }
-
-
-    private _mapCsvRowToRegisterPredictionDTO(csvRow: any): RegisterPredicitionDTO {
-        
-        const getVal = (key: string) => csvRow[key] ? parseFloat(csvRow[key]) : null;
-
-        return {
-            description: `Predição via CSV para objeto ${csvRow.id || 'desconhecido'}`,
-            probability: 0,
-            classification: 'CANDIDATE',
-            userId: 'csv-upload-process',
-            
-            starParams: {
-                effective_temperature_value: getVal('stellar_temp_k'),
-                radius_value: getVal('stellar_radius_solar'),
-                mass_value: getVal('stellar_mass_solar'),
-                effective_temperature_error: null, mass_error: null, radius_error: null,
-                effective_temperature_unit: null, mass_unit: null, radius_unit: null,
-            },
-            candidateParams: {
-                radius_value: getVal('planet_radius_earth'),
-                equilibrium_temp: getVal('equilibrium_temp'),
-                mass_value: null, mass_error: null, radius_error: null, mass_unit: null, radius_unit: null,
-            },
-            signalParams: {
-                orbital_period_value: getVal('orbital_period'),
-                transit_duration_value: getVal('transit_duration_hr'),
-                transit_depth_value: getVal('transit_depth_ppm'),
-                impact_parameter_value: getVal('impact_parameter'),
-                signal_to_noise: getVal('signal_to_noise'),
-                impact_parameter_error: null, orbital_period_error: null, transit_duration_error: null, transit_depth_error: null,
-                orbital_period_unit: null, transit_duration_unit: null,
-            }
-        };
-    }
-    
-    
-    private _validateMinimumFeatures(data: RegisterPredicitionDTO): void {
-        const MINIMUM_FEATURES_FOR_PREDICTION: (keyof typeof featureMap)[] = [
-            'orbital_period',
-            'transit_duration_hr',
-            'transit_depth_ppm',
-            'planet_radius_earth',
-            'stellar_temp_k',
-            'stellar_radius_solar',
-            'stellar_mass_solar',
-            'impact_parameter',
-            'equilibrium_temp',
-            'signal_to_noise',
-        ];
-        const featureMap = {
-            'orbital_period': data.signalParams.orbital_period_value,
-            'transit_duration_hr': data.signalParams.transit_duration_value,
-            'transit_depth_ppm': data.signalParams.transit_depth_value,
-            'planet_radius_earth': data.candidateParams.radius_value,
-            'stellar_temp_k': data.starParams.effective_temperature_value,
-            'stellar_radius_solar': data.starParams.radius_value,
-            'stellar_mass_solar': data.starParams.mass_value,
-            'impact_parameter': data.signalParams.impact_parameter_value,
-            'equilibrium_temp': data.candidateParams.equilibrium_temp,
-            'signal_to_noise': data.signalParams.signal_to_noise,
-        };
-
-        const missingFeatures = MINIMUM_FEATURES_FOR_PREDICTION.filter(
-            (feature: keyof typeof featureMap) => featureMap[feature] === null || featureMap[feature] === undefined
-        );
-
-        if (missingFeatures.length > 0) {
-            throw new BadRequestError(`Dados insuficientes para predição. Campos obrigatórios faltando: ${missingFeatures.join(', ')}`);
-        }
-    }
-
- 
-    private async _parseCsv(buffer: Buffer): Promise<any[]> {
-        const records: any[] = [];
-        const parser = parse({ columns: true, skip_empty_lines: true, trim: true });
-        parser.on('readable', function(this: typeof parser){
-            let record;
-            while ((record = parser.read()) !== null) {
-                records.push(record);
-            }
-        });
-        parser.write(buffer);
-        parser.end();
-        await finished(parser);
-        return records;
     }
 }

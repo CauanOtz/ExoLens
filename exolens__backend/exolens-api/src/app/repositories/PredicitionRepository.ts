@@ -26,10 +26,6 @@ export class PredictionRepository {
     async findAllByUserId(userId: string): Promise<Prediction[]> {
         return prisma.prediction.findMany({ where: { userId } });
     }
-    
-    async deleteById(id: string): Promise<void> {
-        await prisma.prediction.delete({ where: { id } });
-    }
 
 
 }

@@ -1,21 +1,16 @@
 import type { ReactNode } from 'react';
-import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { AuthModal } from '../components/auth/AuthModal';
-import SolarSystemShowcase from '../components/three/SolarSystemShowcase';
+import React, { Suspense } from 'react';
 import SunModel from '../components/three/SunModel';
-import { AboutSection } from '../pages/Settings/AboutSection';
-import TransitPage from '../pages/Transit/TransitPage';
-import './DashboardLayout.css';
 // lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
 const PlanetBuilderPanel = React.lazy(() => import('../components/three/PlanetBuilderPanel'));
+import TransitPage from '../pages/Transit/TransitPage';
+import './DashboardLayout.css';
+import { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 
 interface DashboardLayoutProps { children: ReactNode }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalView, setModalView] = useState<'login' | 'signup'>('login');
-  const openAuthModal = (view: 'login' | 'signup') => { setModalView(view); setIsModalOpen(true); };
   const [generatorOpen, setGeneratorOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -26,10 +21,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [clickFlash, setClickFlash] = useState(false);
   const [transitOpen, setTransitOpen] = useState(false);
   const [transitActive, setTransitActive] = useState(false);
-  const [solarShowcaseOpen, setSolarShowcaseOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const onOpen = () => setGeneratorOpen(true);
@@ -84,11 +76,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Ensure About overlay closes when leaving dashboard phase
-  useEffect(() => {
-    if (sunPhase !== 'dashboard' && aboutOpen) setAboutOpen(false);
-  }, [sunPhase]);
-
   // Open transit panel (in-layout) with a linear, smooth reveal
   const openTransit = (e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -118,34 +105,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className={`dashboard-layout sun-phase-${sunPhase} ${generatorOpen ? 'generator-open' : ''} ${isClosing ? 'generator-closing' : ''} ${sunMenuOpen ? 'sun-menu-open' : ''} ${transitOpen ? 'transit-open' : ''} ${transitActive ? 'transit-active' : ''}`}>
-      <header className="dashboard-header">
-        <img
-          src={new URL('../assets/NOISE/NoiseLogo.png', import.meta.url).href}
-          alt="NOISE Logo"
-          className="header-logo"
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            // navigate to home/dashboard and reset layout panels
-            navigate('/');
-            setGeneratorOpen(false);
-            setLeftOpen(false);
-            setTransitOpen(false);
-            setTransitActive(false);
-            setSunMenuOpen(false);
-            setSunPhase('dashboard');
-          }}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }}
-        />
-      </header>
-       <nav className="auth-links">
-        <button className="auth-link" onClick={() => openAuthModal('login')}>
-          Log-in
-        </button>
-        <button className="auth-button" onClick={() => openAuthModal('signup')}>
-          Sign-in
-        </button>
-      </nav>
       <div className="space-bg" aria-hidden="true">
         <div className="stars-small" aria-hidden="true" />
         <div className="stars-large" aria-hidden="true" />
@@ -155,42 +114,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <h1 className="hero-title">ExoLens</h1>
         <p className="hero-subtitle">Leitor e gerador de exoplanetas — explore e crie mundos com base na composição planetária.</p>
         <div className="planet-context-chip">
-            <>
-              <button
-                className="planet-context-action"
-                onClick={() => { openTransit(); setSunPhase('transit'); }}
-                aria-label="Trânsitos"
-                title="Trânsitos"
-              >
-                <span>Trânsitos</span>
-              </button>
-              <button
-                className="planet-context-action"
-                onClick={() => { openGenerator(); setSunPhase('generator'); }}
-                aria-label="Gerador"
-                title="Gerador"
-              >
-                <span>Gerador</span>
-              </button>
-              <button
-                className="planet-context-action"
-                onClick={() => {
-                  // open the Solar System showcase in-layout and animate the sun to the top-left
-                  setSolarShowcaseOpen(true);
-                  setSunPhase('settings');
-                  // close other panels
-                  setGeneratorOpen(false);
-                  setTransitOpen(false);
-                  setLeftOpen(false);
-                  setSunMenuOpen(false);
-                }}
-                aria-label="Mostrar Sistema Solar"
-                title="Sistema Solar"
-              >
-                <span>Sistema Solar</span>
-              </button>
-            </>
-          
+          {sunPhase === 'dashboard' && <span>Visão Geral Solar</span>}
+          {sunPhase === 'transit' && <span>Observando Trânsitos</span>}
+          {sunPhase === 'generator' && <span>Gerando Exoplaneta</span>}
+          {sunPhase === 'settings' && <span>Ajustes do Sistema</span>}
         </div>
       </div>
       <div
@@ -227,15 +154,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
         {clickFlash && <div className="sun-click-flash" aria-hidden />}
   <SunModel autoRotate={true} autoRotateSpeed={0.045} />
-
       </div>
-      {/* Solar showcase panel (appears when settings/Sistema Solar is opened) */}
-      {solarShowcaseOpen && (
-        <div className="solar-showcase-panel" role="dialog" aria-label="Sistema Solar Showcase">
-          <button className="solar-showcase-close" onClick={() => setSolarShowcaseOpen(false)} aria-label="Fechar">×</button>
-          <SolarSystemShowcase onSelect={(p) => { console.log('Solar selected', p); /* optional: wire to generator */ }} />
+      <div className={`sun-sections-menu ${sunMenuOpen ? 'open' : ''}`} aria-hidden={!sunMenuOpen}>
+        <div className="sun-sections-inner">
+          <div className="sun-menu-header">
+            <span className="sun-menu-title">Seções</span>
+            <button className="sun-menu-close" onClick={() => setSunMenuOpen(false)} aria-label="Fechar menu">×</button>
+          </div>
+          <nav className="sun-menu-nav">
+              <a href="/dashboard" className="sun-menu-link">Dashboard</a>
+              <a href="/transit" className="sun-menu-link" onClick={(e) => openTransit(e)}>Trânsitos</a>
+              <a href="/generator" className="sun-menu-link" onClick={(e) => { e.preventDefault(); openGenerator(e); }}>Gerador</a>
+              <a href="/settings" className="sun-menu-link">Configurações</a>
+          </nav>
         </div>
-      )}
+      </div>
       {/* In-layout Transit panel (slides in without route change) */}
       <div className={`transit-panel ${transitOpen ? 'open' : ''} ${transitActive ? 'active' : ''}`} aria-hidden={!transitOpen}>
         <div className="transit-panel-inner">
@@ -286,31 +219,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {generatorOpen && (
         <div className="generator-overlay" aria-hidden={!generatorOpen}>
           <Suspense fallback={<div className="generator-left" aria-hidden="true" /> }>
-            <PlanetBuilderPanel />
+            <PlanetBuilderPanel onClose={() => { setTransitOpen(false); setGeneratorOpen(false); setLeftOpen(false); setSunPhase('dashboard'); }} />
           </Suspense>
         </div>
       )}
+      {/* Debug overlay: visible control to toggle sun menu and show state (temporary) */}
+      <div className="debug-overlay" aria-hidden="false">
+        <div className="debug-inner">
+          <div>Sun menu: <strong>{sunMenuOpen ? 'OPEN' : 'closed'}</strong></div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <button onClick={() => { console.log('[Debug] toggle button clicked'); setSunMenuOpen(s => !s); }}>Toggle Sun Menu</button>
+            <button onClick={() => { console.log('[Debug] close'); setSunMenuOpen(false); }}>Close</button>
+          </div>
+        </div>
+      </div>
       <div className="dashboard-main">
         <main className="dashboard-content">{children}</main>
       </div>
-      <AuthModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        initialView={modalView}
-      />
-      {/* Floating About button (bottom-left) - only on dashboard */}
-      {sunPhase === 'dashboard' && (
-        <button
-          aria-label="Sobre ExoLens"
-          title="Sobre ExoLens"
-          onClick={() => setAboutOpen(true)}
-          className="about-fab"
-        >
-          Sobre
-        </button>
-      )}
 
-      {aboutOpen && <AboutSection onClose={() => setAboutOpen(false)} />}
       {/* generator-screen removed: we now use left-options + animated sun for the entry flow */}
     </div>
   );

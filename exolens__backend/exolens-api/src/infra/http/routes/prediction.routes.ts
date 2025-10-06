@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import multer from 'multer';
 import { PredictionController } from '../../../app/controllers/PredictionController';
 import { PredictionService } from '../../../app/services/PredictionService';
 import { PredictionRepository } from './../../../app/repositories/PredicitionRepository';
@@ -7,10 +6,110 @@ const predictionRoutes = express.Router();
 
 import { authMiddleware } from '../middlewares/authMiddleware';
 
-const upload = multer({ storage: multer.memoryStorage() });
-
 const predictionRepository = new PredictionRepository();
 const predictionController = new PredictionController(new PredictionService(predictionRepository));
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     PredictionParams:
+ *       type: object
+ *       properties:
+ *         value:
+ *           type: number
+ *           example: 1.0
+ *         error:
+ *           type: number
+ *           example: 0.1
+ *         unit:
+ *           type: string
+ *           example: "Solar Mass"
+ *
+ *     RegisterPredictionInput:
+ *       type: object
+ *       required:
+ *         - description
+ *         - probability
+ *         - classification
+ *       properties:
+ *         description:
+ *           type: string
+ *           description: A description for the prediction.
+ *           example: "Kepler-186 f candidate"
+ *         probability:
+ *           type: number
+ *           format: float
+ *           description: The probability of the prediction being correct (0 to 1).
+ *           example: 0.95
+ *         classification:
+ *           type: string
+ *           enum: [POSITIVE, NEGATIVE, FALSE_POSITIVE, FALSE_NEGATIVE, CONFIRMED]
+ *           example: "CONFIRMED"
+ *         starParams:
+ *           $ref: '#/components/schemas/StarParams'
+ *         candidateParams:
+ *           $ref: '#/components/schemas/CandidateParams'
+ *         signalParams:
+ *           $ref: '#/components/schemas/SignalParams'
+ *
+ *     ViewPrediction:
+ *       type: object
+ *       properties:
+ *         description:
+ *           type: string
+ *         probability:
+ *           type: number
+ *         classification:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         mass_value:
+ *           type: number
+ *         mass_unit:
+ *           type: string
+ *         radius_value:
+ *           type: number
+ *         radius_unit:
+ *           type: string
+ *         transit_duration_value:
+ *           type: number
+ *         transit_duration_unit:
+ *           type: string
+ *     PredictionResponse:
+ *       type: object
+ *       properties:
+ *         star_params:
+ *           type: object
+ *           properties:
+ *             mass:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *             radius:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *             effective_temperature:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *         candidate_params:
+ *           type: object
+ *           properties:
+ *             mass:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *             radius:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *         signal_params:
+ *           type: object
+ *           properties:
+ *             orbital_period:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *             transit_duration:
+ *               $ref: '#/components/schemas/PredictionParams'
+ *
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
 
 /**
  * @swagger
@@ -36,12 +135,7 @@ const predictionController = new PredictionController(new PredictionService(pred
  *       401:
  *         description: Unauthorized. Token is missing or invalid.
  */
-predictionRoutes.post(
-  "/register",
-  authMiddleware,
-  (req: Request, res: Response, next: NextFunction) =>
-    predictionController.register(req, res, next)
-);
+predictionRoutes.post('/register', authMiddleware, (req: Request, res: Response, next: NextFunction) => predictionController.register(req, res, next));
 
 /**
  * @swagger
@@ -71,12 +165,7 @@ predictionRoutes.post(
  *       404:
  *         description: Prediction not found.
  */
-predictionRoutes.get(
-  "/:id",
-  authMiddleware,
-  (req: Request, res: Response, next: NextFunction) =>
-    predictionController.getById(req, res, next)
-);
+predictionRoutes.get('/:id', authMiddleware, (req: Request, res: Response, next: NextFunction) => predictionController.getById(req, res, next));
 
 /**
  * @swagger
@@ -100,121 +189,5 @@ predictionRoutes.get(
  *       404:
  *         description: No predictions found for this user.
  */
-predictionRoutes.get(
-  "/",
-  authMiddleware,
-  (req: Request, res: Response, next: NextFunction) =>
-    predictionController.getAllByUserId(req, res, next)
-);
-
-/**
- * @swagger
- * /api/predictions/{id}:
- *   delete:
- *     summary: Delete a specific prediction by its ID
- *     tags: [Predictions]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: The ID of the prediction to delete.
- *     responses:
- *       204:
- *         description: Prediction deleted successfully.
- *       401:
- *         description: Unauthorized. Token is missing or invalid.
- *       404:
- *         description: Prediction not found.
- */
-predictionRoutes.delete(
-  "/:id",
-  authMiddleware,
-  (req: Request, res: Response, next: NextFunction) =>
-    predictionController.deleteById(req, res, next)
-);
-
-/**
- * @swagger
- * /api/predictions/predict/form:
- *   post:
- *     summary: Executes a prediction from structured JSON data
- *     tags: [Predictions]
- *     security:
- *       - bearerAuth: []
- *     description: Sends a JSON object with the system parameters to receive a single prediction from the AI model.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RegisterPredictionInput'
- *     responses:
- *       '200':
- *         description: Prediction successfully executed.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AIPredictionResponse'
- *       '400':
- *         description: Insufficient data for prediction or invalid request body.
- *       '401':
- *         $ref: '#/components/responses/UnauthorizedError'
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
- */
-predictionRoutes.post(
-    "/predict/form", 
-    authMiddleware,
-    (req: Request, res: Response, next: NextFunction) => predictionController.predictFromForm(req, res, next)
-);
-/**
- * @swagger
- * /api/predictions/predict/csv:
- *   post:
- *     summary: Executes batch predictions from a CSV file
- *     tags: [Predictions]
- *     security:
- *       - bearerAuth: []
- *     description: Upload a CSV file to process multiple predictions at once. The first line of the file must contain the column headers (features).
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               predictionFile:
- *                 type: string
- *                 format: binary
- *                 description: "CSV file containing the data rows for prediction."
- *     responses:
- *       '200':
- *         description: Batch predictions successfully executed. Returns an array with the results for each row.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/AIPredictionResponse'
- *       '400':
- *         description: "Invalid request. No file was uploaded or the file is malformed."
- *       '401':
- *         $ref: '#/components/responses/UnauthorizedError'
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
- */
-predictionRoutes.post(
-    "/predict/csv", 
-    authMiddleware,
-    upload.single('predictionFile'), 
-    (req: Request, res: Response, next: NextFunction) => predictionController.predictFromCsv(req, res, next)
-);
-
-
-
+predictionRoutes.get('/', authMiddleware, (req: Request, res: Response, next: NextFunction) => predictionController.getAllByUserId(req, res, next));
 export { predictionRoutes };
