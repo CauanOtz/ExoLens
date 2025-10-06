@@ -3,7 +3,7 @@ import { NotFoundError, BadRequestError } from '../../core/errors/AppError';
 import { PredictionRepository } from './../repositories/PredicitionRepository';
 import { createStarParams, createCandidateParams, createSignalParams} from '../factories/PredictionParamsFactory';
 import { transformToMLInput } from '../../core/mappers/prediction.mapper';
-import parse from 'csv-parse';
+import { parse } from 'csv-parse';
 import { finished } from 'stream/promises';
 
 export class PredictionService {
@@ -40,7 +40,7 @@ export class PredictionService {
     async getAllPredictionsByUserId(userId: string) {
         const predictions = await this.predictionRepository.findAllByUserId(userId);
         if(predictions.length === 0) {
-            throw new NotFoundError('No predictions found for this user');
+            return []
         }
 
         return predictions.map(prediction => formatPredictionByViewSchema(prediction as any));
@@ -55,7 +55,6 @@ export class PredictionService {
     }
 
     async predictFromForm(data: RegisterPredicitionDTO): Promise<any> {
-        // Valida se os dados do formulário atendem aos requisitos mínimos
         this._validateMinimumFeatures(data);
         
         const result = await this._callAiModel(data);
@@ -70,10 +69,8 @@ export class PredictionService {
 
         const predictionPromises = records.map(async (csvRow) => {
             try {
-                // Mapeia a linha do CSV para nossa estrutura interna, preenchendo com nulos
                 const predictionInput = this._mapCsvRowToRegisterPredictionDTO(csvRow);
                 
-                // Valida se a linha do CSV contém os dados mínimos
                 this._validateMinimumFeatures(predictionInput);
                 
                 return await this._callAiModel(predictionInput);
