@@ -5,7 +5,7 @@ import pandas as pd
 import io
 
 # Importa nossa função orquestradora do outro arquivo
-from prediction_service import make_prediction
+from .prediction_service import make_prediction
 
 app = Flask(__name__)
 
