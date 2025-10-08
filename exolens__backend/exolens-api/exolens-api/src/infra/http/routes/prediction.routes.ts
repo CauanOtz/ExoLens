@@ -146,6 +146,12 @@ predictionRoutes.delete(
  *     tags: [Predictions]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: isRealData
+ *         schema:
+ *           type: boolean
+ *         description: "Set to true to use the 'real' data pipeline, false for 'fictitious'. Defaults to false."
  *     description: Sends a JSON object with the system parameters to receive a single prediction from the AI model.
  *     requestBody:
  *       required: true
@@ -180,6 +186,12 @@ predictionRoutes.post(
  *     tags: [Predictions]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: isRealData
+ *         schema:
+ *           type: boolean
+ *         description: "Set to true to use the 'real' data pipeline, false for 'fictitious'. Defaults to false."
  *     description: Upload a CSV file to process multiple predictions at once. The first line of the file must contain the column headers (features).
  *     requestBody:
  *       required: true

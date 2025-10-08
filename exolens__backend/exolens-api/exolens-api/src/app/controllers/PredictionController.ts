@@ -75,8 +75,9 @@ export class PredictionController {
     }
       async predictFromForm(req: Request, res: Response, next: NextFunction) {
         try {
+            const isRealData = req.query.isRealData === 'true';
             const predictionInput = registerPredictionSchema.parse(req.body);
-            const result = await this.predictionService.predictFromForm(predictionInput);
+            const result = await this.predictionService.predictFromForm(predictionInput, isRealData);
             return res.status(200).json(result);
         } catch (error) {
             next(error);
@@ -88,7 +89,8 @@ export class PredictionController {
             if (!req.file) {
                 throw new BadRequestError('Nenhum arquivo CSV foi enviado.');
             }
-            const results = await this.predictionService.predictFromCsv(req.file.buffer);
+            const isRealData = req.query.isRealData === 'true';
+            const results = await this.predictionService.predictFromCsv(req.file.buffer, isRealData);
             return res.status(200).json(results);
         } catch (error) {
             next(error);

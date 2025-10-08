@@ -6,6 +6,14 @@ import { transformToMLInput } from '../../core/mappers/prediction.mapper';
 import { parse } from 'csv-parse';
 import { finished } from 'stream/promises';
 
+interface AiModelResponse {
+    explicacao_xgboost: {
+        contribuicoes: number[];
+        features: string[];
+    };
+    probabilidade_final: number[];
+}
+
 export class PredictionService {
 
     constructor(private predictionRepository: PredictionRepository) {}
@@ -54,16 +62,16 @@ export class PredictionService {
         await this.predictionRepository.deleteById(id);
     }
 
-    async predictFromForm(data: RegisterPredicitionDTO): Promise<any> {
+    async predictFromForm(data: RegisterPredicitionDTO, isRealData: boolean): Promise<any> {
         this._validateMinimumFeatures(data);
         
-        const result = await this._callAiModel(data);
+        const result = await this._callAiModel(data, isRealData);
         return result;
     }
 
     /**
      */
-    async predictFromCsv(fileBuffer: Buffer) {
+    async predictFromCsv(fileBuffer: Buffer, isRealData: boolean) {
         const records = await this._parseCsv(fileBuffer);
 
         const predictionPromises = records.map(async (csvRow) => {
@@ -72,7 +80,7 @@ export class PredictionService {
                 
                 this._validateMinimumFeatures(predictionInput);
                 
-                return await this._callAiModel(predictionInput);
+                return await this._callAiModel(predictionInput, isRealData);
             } catch (error: any) {
                 return { error: `Falha na linha: ${JSON.stringify(csvRow)}`, details: error.message ?? 'Unknown error' };
             }
@@ -82,16 +90,24 @@ export class PredictionService {
     }
     
 
-    private async _callAiModel(predictionData: RegisterPredicitionDTO): Promise<any> {
-        const mlPayload = transformToMLInput(predictionData);
+    private async _callAiModel(predictionData: RegisterPredicitionDTO, isRealData: boolean): Promise<any> {
+        const mlPayload = transformToMLInput(predictionData, isRealData);
 
+        const aiApiUrl = process.env.AI_API_URL || 'http://localhost:5001/predict';
 
-        const aiResult = {
-            explicacao_xgboost: { /* ... */ },
-            probabilidade_final: [0.0534]
-        };
+        const response = await fetch(aiApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mlPayload),
+        });
 
-  
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`AI model request failed with status ${response.status}: ${errorBody}`);
+        }
+        const aiResult = await response.json() as AiModelResponse;
         return {
             finalProbability: aiResult.probabilidade_final[0],
             featureContributions: aiResult.explicacao_xgboost,

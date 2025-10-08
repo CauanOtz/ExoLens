@@ -81,7 +81,7 @@ function convertToSolarMasses(value: number | null, unit: PredictionInput['starP
 
 
 
-export function transformToMLInput(data: PredictionInput): MLInput {
+export function transformToMLInput(data: PredictionInput, isRealData: boolean): MLInput {
   
   const headers = [
     'orbital_period',       
@@ -110,7 +110,7 @@ export function transformToMLInput(data: PredictionInput): MLInput {
   ].join(',');
 
   return {
-    data_type: "fictitious",
+    data_type: isRealData ? "real" : "fictitious",
     csv_data: `${headers}\n${values}\n`
   };
 }
