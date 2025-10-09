@@ -19,8 +19,12 @@ const SOLAR_MASS_IN_KG = 1.989e30;
 
 
 function convertTime(value: number | null, unit: PredictionInput['signalParams']['orbital_period_unit'], targetUnit: 'days' | 'hours'): number {
-    if (value === null || value === undefined || unit === null || unit === undefined) {
+    if (value === null || value === undefined) {
         return 0;
+    }
+    // If no unit is provided, assume it's already in the target unit or a compatible one (like days for orbital_period).
+    if (unit === null || unit === undefined) {
+        return value;
     }
     const hoursInUnit = {
         seconds: 1 / 3600,
@@ -39,8 +43,12 @@ function convertTime(value: number | null, unit: PredictionInput['signalParams']
 }
 
 function convertToEarthRadii(value: number | null, unit: PredictionInput['candidateParams']['radius_unit']): number {
-    if (value === null || value === undefined || unit === null || unit === undefined) {
+    if (value === null || value === undefined) {
         return 0;
+    }
+    // If no unit is provided, assume it's already in Earth Radii.
+    if (unit === null || unit === undefined) {
+        return value;
     }
     switch(unit) {
         case 'km': return value / EARTH_RADIUS_IN_KM;
@@ -53,8 +61,12 @@ function convertToEarthRadii(value: number | null, unit: PredictionInput['candid
 
 
 function convertToSolarRadii(value: number | null, unit: PredictionInput['starParams']['radius_unit']): number {
-    if (value === null || value === undefined || unit === null || unit === undefined) {
+    if (value === null || value === undefined) {
         return 0;
+    }
+    // If no unit is provided, assume it's already in Solar Radii.
+    if (unit === null || unit === undefined) {
+        return value;
     }
     switch(unit) {
         case 'km': return value / SOLAR_RADIUS_IN_KM;
@@ -67,8 +79,12 @@ function convertToSolarRadii(value: number | null, unit: PredictionInput['starPa
 
 
 function convertToSolarMasses(value: number | null, unit: PredictionInput['starParams']['mass_unit']): number {
-    if (value === null || value === undefined || unit === null || unit === undefined) {
+    if (value === null || value === undefined) {
         return 0;
+    }
+    // If no unit is provided, assume it's already in Solar Mass.
+    if (unit === null || unit === undefined) {
+        return value;
     }
     switch(unit) {
         case 'kg': return value / SOLAR_MASS_IN_KG;

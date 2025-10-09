@@ -128,24 +128,28 @@ export class PredictionService {
             
             starParams: {
                 effective_temperature_value: getVal('stellar_temp_k'),
+                effective_temperature_unit: csvRow.stellar_temp_k ? 'K' : null,
                 radius_value: getVal('stellar_radius_solar'),
+                radius_unit: csvRow.stellar_radius_solar ? 'Solar Radius' : null,
                 mass_value: getVal('stellar_mass_solar'),
+                mass_unit: csvRow.stellar_mass_solar ? 'Solar Mass' : null,
                 effective_temperature_error: null, mass_error: null, radius_error: null,
-                effective_temperature_unit: null, mass_unit: null, radius_unit: null,
             },
             candidateParams: {
                 radius_value: getVal('planet_radius_earth'),
+                radius_unit: csvRow.planet_radius_earth ? 'Earth Radius' : null,
                 equilibrium_temp: getVal('equilibrium_temp'),
-                mass_value: null, mass_error: null, radius_error: null, mass_unit: null, radius_unit: null,
+                mass_value: null, mass_error: null, radius_error: null, mass_unit: null,
             },
             signalParams: {
                 orbital_period_value: getVal('orbital_period'),
+                orbital_period_unit: csvRow.orbital_period ? 'days' : null,
                 transit_duration_value: getVal('transit_duration_hr'),
+                transit_duration_unit: csvRow.transit_duration_hr ? 'hours' : null,
                 transit_depth_value: getVal('transit_depth_ppm'),
                 impact_parameter_value: getVal('impact_parameter'),
                 signal_to_noise: getVal('signal_to_noise'),
                 impact_parameter_error: null, orbital_period_error: null, transit_duration_error: null, transit_depth_error: null,
-                orbital_period_unit: null, transit_duration_unit: null,
             }
         };
     }
