@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
-import SolarSystemShowcase from '../components/three/SolarSystemShowcase';
+// Removed SolarSystemShowcase import because the button is being replaced by My predictions
 import SunModel from '../components/three/SunModel';
 import { AboutSection } from '../pages/Settings/AboutSection';
 import TransitPage from '../pages/Transit/TransitPage';
@@ -29,7 +29,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [clickFlash, setClickFlash] = useState(false);
   const [transitOpen, setTransitOpen] = useState(false);
   const [transitActive, setTransitActive] = useState(false);
-  const [solarShowcaseOpen, setSolarShowcaseOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [myPredsOpen, setMyPredsOpen] = useState(false);
   const [myPredsLoading, setMyPredsLoading] = useState(false);
@@ -167,6 +166,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener('prediction:saved', onSaved as EventListener);
   }, [myPredsOpen]);
 
+  // Open My predictions when other parts of the app request it
+  useEffect(() => {
+    const onOpen = () => { openMyPreds(); };
+    window.addEventListener('my-predictions:open', onOpen as EventListener);
+    return () => window.removeEventListener('my-predictions:open', onOpen as EventListener);
+  }, [authUser]);
+
   async function loadMyPreds() {
     setMyPredsLoading(true);
     setMyPredsError(null);
@@ -242,20 +248,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <span>Exoplanets 3D</span>
             </button>
+            {/* Replace Solar System button with My predictions, keeping styling */}
             <button
               className="planet-context-action"
-              onClick={() => {
-                setSolarShowcaseOpen(true);
-                setSunPhase('settings');
-                setGeneratorOpen(false);
-                setTransitOpen(false);
-                setLeftOpen(false);
-                setSunMenuOpen(false);
-              }}
-              aria-label="Show Solar System"
-              title="Solar System"
+              onClick={() => { openMyPreds(); }}
+              aria-label="My predictions"
+              title="My predictions"
             >
-              <span>Solar System</span>
+              <span>My predictions</span>
             </button>
           </div>
         </div>
@@ -284,23 +284,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             )}
           </nav>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-          <button
-            type="button"
-            onClick={openMyPreds}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 10,
-              border: '1px solid rgba(123,228,255,0.2)',
-              background: 'rgba(8, 20, 38, 0.65)',
-              color: '#f1fbff',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            My predictions
-          </button>
-        </div>
+        {/* Removed the separate right-side My predictions button */}
       </header>
       <div className="space-bg" aria-hidden="true">
         <div className="stars-small" aria-hidden="true" />
@@ -346,13 +330,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   <SunModel autoRotate={true} autoRotateSpeed={0.045} />
 
       </div>
-      {/* Solar showcase panel (appears when settings/Sistema Solar is opened) */}
-      {solarShowcaseOpen && (
-        <div className="solar-showcase-panel" role="dialog" aria-label="Sistema Solar Showcase">
-          <button className="solar-showcase-close" onClick={() => setSolarShowcaseOpen(false)} aria-label="Fechar">×</button>
-          <SolarSystemShowcase onSelect={(p) => { console.log('Solar selected', p); /* optional: wire to generator */ }} />
-        </div>
-      )}
       {/* In-layout Transit panel (slides in without route change) */}
       <div className={`transit-panel ${transitOpen ? 'open' : ''} ${transitActive ? 'active' : ''}`} aria-hidden={!transitOpen}>
         <div className="transit-panel-inner">
