@@ -13,6 +13,15 @@ app = Flask(__name__)
 def predict():
     # 1. Recebe os dados da requisição
     data = request.json
+
+    # --- ADICIONE ESTAS LINHAS ---
+    print("\n" + "="*50)
+    print("--- DADOS BRUTOS RECEBIDOS PELA API ---")
+    print(data)
+    print("="*50 + "\n")
+    # --- FIM DA ADIÇÃO ---
+
+    
     if not data or 'csv_data' not in data:
         return jsonify({"error": "Payload inválido. Chave 'csv_data' ausente."}), 400
 
