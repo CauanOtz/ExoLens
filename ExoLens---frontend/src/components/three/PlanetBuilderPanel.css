@@ -1,0 +1,83 @@
+.preview-shell {
+  position: relative;
+  background: radial-gradient(circle at 30% 30%, rgba(60, 162, 255, 0.08), rgba(0, 0, 0, 0.45));
+  border-radius: 20px;
+  border: 1px solid rgba(123, 228, 255, 0.18);
+  box-shadow: 0 24px 60px rgba(2, 8, 24, 0.54);
+  overflow: hidden;
+}
+
+.preview-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(11, 152, 201, 0.12), transparent 45%);
+}
+
+.preview-shell > div {
+  position: relative;
+  z-index: 1;
+}
+
+.info-badge {
+  --badge-glow: rgba(123, 228, 255, 0.32);
+  backdrop-filter: blur(10px) saturate(130%);
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+
+.info-badge:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 42px var(--badge-glow);
+}
+
+.info-badge.highlight {
+  border-color: rgba(123, 228, 255, 0.6) !important;
+  background: linear-gradient(180deg, rgba(11, 152, 201, 0.25), rgba(4, 12, 24, 0.55)) !important;
+}
+
+@media (max-width: 960px) {
+  .preview-shell {
+    height: clamp(420px, 60vh, 580px);
+  }
+  .info-badge {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .preview-shell {
+    height: clamp(360px, 56vh, 520px);
+    padding-bottom: 40px;
+  }
+  .info-badge {
+    max-width: 70vw !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    position: relative !important;
+    margin: 12px 0;
+  }
+}
+
+.preview-fixed { height: min(520px, 64vh); max-height: 64vh; }
+
+
+.preview-nav-button {
+  outline: none;
+  border: none;
+}
+.preview-nav-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+.preview-nav-button:focus-visible {
+  outline: 2px solid rgba(123, 228, 255, 0.9);
+  outline-offset: 4px;
+}
+
+.generator-panel { height: 100%; display: flex; flex-direction: row; }
+.generator-panel .generator-right { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; overflow: auto; padding: 18px; box-sizing: border-box; }
+
+.generator-panel .generator-right .preview-shell { width: min(820px, 86%); height: min(520px, 60vh); max-height: 64vh; min-height: 240px; box-sizing: border-box; transition: none; }
+.generator-panel .generator-right .preview-shell .preview-overlay { transition: none; }
