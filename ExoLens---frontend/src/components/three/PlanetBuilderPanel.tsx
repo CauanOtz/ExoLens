@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './PlanetBuilderPanel.css';
 import PlanetPreview3D from './PlanetPreview3D';
-import { fetchExoplanets, saveExoplanetPrediction } from '../../services/exoplanetService';
+import { fetchExoplanets, saveExoplanetPrediction, predictFromCsv } from '../../services/exoplanetService';
+import type { PredictionResponse } from '../../services/exoplanetService';
 import type { Exoplanet, ExoplanetClassification } from '../../types/exoplanet';
 
 type FilterOption = 'ALL' | 'CONFIRMED' | 'CANDIDATE' | 'FALSE POSITIVE' | 'OTHER';
@@ -240,15 +241,187 @@ export default function PlanetBuilderPanel() {
   };
 
   const handleRunAnalysis = () => {
+    // Run AI analysis by sending a CSV to the backend prediction endpoint.
+    (async () => {
+      if (!currentPlanet) return;
+      setAnalysisLoading(true);
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Running AI analysis…' } }));
+      try {
+        // Build CSV same way as handlePredictCsv (derive values when possible)
+        const orbital_period = currentPlanet?.orbital_period_value ?? null;
+        const transit_duration_hr = currentPlanet?.transit_duration_value ?? null;
+        let transit_depth_ppm: number | null = null;
+        if (typeof currentPlanet?.radius_value === 'number' && typeof currentPlanet?.st_radius_value === 'number' && currentPlanet.st_radius_value > 0) {
+          const Rp = currentPlanet.radius_value;
+          const Rs = currentPlanet.st_radius_value * 109;
+          const frac = (Rp / Rs) ** 2;
+          transit_depth_ppm = Math.round(frac * 1e6);
+        }
+        const planet_radius_earth = currentPlanet?.radius_value ?? null;
+        const stellar_temp_k = currentPlanet?.st_teff_value ?? null;
+        const stellar_radius_solar = currentPlanet?.st_radius_value ?? null;
+        const stellar_mass_solar = currentPlanet?.st_mass_value ?? null;
+  // provide defaults for fields required by backend validation
+  const impact_parameter = (typeof (currentPlanet as any)?.impact_parameter === 'number') ? (currentPlanet as any).impact_parameter : 0;
+  // try obvious properties (some datasets use koi_teq / equilibrium_temp), fall back to 0
+  const equilibrium_temp = (currentPlanet as any)?.equilibrium_temp ?? (currentPlanet as any)?.koi_teq ?? 0;
+        const stellar_density = (stellar_mass_solar != null && stellar_radius_solar != null && stellar_radius_solar !== 0)
+          ? (stellar_mass_solar / (stellar_radius_solar ** 3))
+          : null;
+        const duration_over_period = (transit_duration_hr != null && orbital_period != null && orbital_period !== 0)
+          ? (transit_duration_hr / (orbital_period * 24))
+          : null;
+        const depth_per_planet_radius = (transit_depth_ppm != null && planet_radius_earth != null && planet_radius_earth !== 0)
+          ? (transit_depth_ppm / (planet_radius_earth ** 2))
+          : null;
+        const signal_to_noise = currentPlanet?.probability ?? null;
+
+        const csvRow: Record<string, any> = {
+          orbital_period: orbital_period ?? '',
+          transit_duration_hr: transit_duration_hr ?? '',
+          transit_depth_ppm: transit_depth_ppm ?? '',
+          planet_radius_earth: planet_radius_earth ?? '',
+          stellar_temp_k: stellar_temp_k ?? '',
+          stellar_radius_solar: stellar_radius_solar ?? '',
+          stellar_mass_solar: stellar_mass_solar ?? '',
+          impact_parameter: impact_parameter ?? '',
+          equilibrium_temp: equilibrium_temp ?? '',
+          stellar_density: stellar_density ?? '',
+          duration_over_period: duration_over_period ?? '',
+          depth_per_planet_radius: depth_per_planet_radius ?? '',
+          signal_to_noise: signal_to_noise ?? '',
+        };
+        const keys = Object.keys(csvRow);
+        const csv = keys.join(',') + '\n' + keys.map(k => (csvRow[k] === '' || csvRow[k] == null ? '' : String(csvRow[k]))).join(',');
+
+        const resp = await predictFromCsv(csv, true);
+        if (resp && resp.length) {
+          const r = resp[0] as PredictionResponse;
+          // generate natural-language explanation from feature contributions
+          const explanationLines = generateNaturalLanguageExplanation(r);
+          setAnalysis({ verdict: `Final Probability: ${(r.finalProbability * 100).toFixed(1)}%`, explanation: explanationLines, timestamp: new Date().toISOString() });
+          window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'AI analysis complete' } }));
+          window.dispatchEvent(new CustomEvent('prediction:csv', { detail: { result: r, csv } }));
+        } else {
+          window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: 'No prediction returned' } }));
+        }
+      } catch (err: any) {
+        const msg = err?.message ?? String(err);
+        // fallback to local heuristic analysis so the user still sees an explanation
+        try {
+          if (currentPlanet) setAnalysis(buildAnalysis(currentPlanet));
+        } catch (e) {
+          // ignore
+        }
+        window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: `Analysis failed: ${msg}` } }));
+      } finally {
+        setAnalysisLoading(false);
+      }
+    })();
+  };
+
+  // Build human-readable explanation lines from PredictionResponse
+  function generateNaturalLanguageExplanation(pred: PredictionResponse): string[] {
+    const contribs = pred.featureContributions?.contribuicoes ?? [];
+    const features = pred.featureContributions?.features ?? [];
+    if (!features || !contribs || features.length !== contribs.length) {
+      return ['Model returned no feature contributions.'];
+    }
+    // pair and sort by absolute impact descending
+    const pairs = features.map((f, i) => ({ feature: f, value: contribs[i], abs: Math.abs(contribs[i]) }));
+    pairs.sort((a, b) => b.abs - a.abs);
+
+    const lines: string[] = [];
+    lines.push(`Overall prediction: ${(pred.finalProbability * 100).toFixed(1)}% probability.`);
+    // take top 5 contributors
+    const top = pairs.slice(0, Math.min(5, pairs.length));
+    for (const p of top) {
+      const direction = p.value > 0 ? 'increases' : 'decreases';
+      const magnitude = Math.abs(p.value);
+      // template sentences with small heuristics
+      if (magnitude > 0.5) {
+        lines.push(`${p.feature}: strong ${direction} the model probability (contribution ${p.value.toFixed(3)}).`);
+      } else if (magnitude > 0.1) {
+        lines.push(`${p.feature}: moderate ${direction} the model probability (contribution ${p.value.toFixed(3)}).`);
+      } else {
+        lines.push(`${p.feature}: small ${direction} the model probability (contribution ${p.value.toFixed(3)}).`);
+      }
+    }
+    lines.push('These statements are derived from the model feature contributions (SHAP-like values).');
+    return lines;
+  }
+
+  const handlePredictCsv = async () => {
     if (!currentPlanet) return;
     setAnalysisLoading(true);
-    window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Running analysis…' } }));
-    // Simulate a short delay to mirror a model request and improve UX feedback
-    window.setTimeout(() => {
-      setAnalysis(buildAnalysis(currentPlanet));
+    try {
+      // Build a CSV with the 13 features expected by the backend model.
+      // Missing fields will be filled by the backend, but we compute obvious derivations here.
+      const orbital_period = currentPlanet?.orbital_period_value ?? null;
+      const transit_duration_hr = currentPlanet?.transit_duration_value ?? null;
+      // compute transit depth (ppm) from radii if possible
+      let transit_depth_ppm: number | null = null;
+      if (typeof currentPlanet?.radius_value === 'number' && typeof currentPlanet?.st_radius_value === 'number' && currentPlanet.st_radius_value > 0) {
+        const Rp = currentPlanet.radius_value;
+        const Rs = currentPlanet.st_radius_value * 109; // convert solar radius to earth radii approx
+        const frac = (Rp / Rs) ** 2;
+        transit_depth_ppm = Math.round(frac * 1e6);
+      }
+      const planet_radius_earth = currentPlanet?.radius_value ?? null;
+      const stellar_temp_k = currentPlanet?.st_teff_value ?? null;
+      const stellar_radius_solar = currentPlanet?.st_radius_value ?? null;
+      const stellar_mass_solar = currentPlanet?.st_mass_value ?? null;
+  // provide defaults for fields required by backend validation
+  const impact_parameter = (typeof (currentPlanet as any)?.impact_parameter === 'number') ? (currentPlanet as any).impact_parameter : 0;
+  const equilibrium_temp = (currentPlanet as any)?.equilibrium_temp ?? (currentPlanet as any)?.koi_teq ?? 0;
+      const stellar_density = (stellar_mass_solar != null && stellar_radius_solar != null && stellar_radius_solar !== 0)
+        ? (stellar_mass_solar / (stellar_radius_solar ** 3))
+        : null;
+      const duration_over_period = (transit_duration_hr != null && orbital_period != null && orbital_period !== 0)
+        ? (transit_duration_hr / (orbital_period * 24))
+        : null;
+      const depth_per_planet_radius = (transit_depth_ppm != null && planet_radius_earth != null && planet_radius_earth !== 0)
+        ? (transit_depth_ppm / (planet_radius_earth ** 2))
+        : null;
+      const signal_to_noise = currentPlanet?.probability ?? null;
+
+      const csvRow: Record<string, any> = {
+        orbital_period: orbital_period ?? '',
+        transit_duration_hr: transit_duration_hr ?? '',
+        transit_depth_ppm: transit_depth_ppm ?? '',
+        planet_radius_earth: planet_radius_earth ?? '',
+        stellar_temp_k: stellar_temp_k ?? '',
+        stellar_radius_solar: stellar_radius_solar ?? '',
+        stellar_mass_solar: stellar_mass_solar ?? '',
+        impact_parameter: impact_parameter ?? '',
+        equilibrium_temp: equilibrium_temp ?? '',
+        stellar_density: stellar_density ?? '',
+        duration_over_period: duration_over_period ?? '',
+        depth_per_planet_radius: depth_per_planet_radius ?? '',
+        signal_to_noise: signal_to_noise ?? '',
+      };
+
+      const keys = Object.keys(csvRow);
+      const csv = keys.join(',') + '\n' + keys.map(k => (csvRow[k] === '' || csvRow[k] == null ? '' : String(csvRow[k]))).join(',');
+
+      const resp = await predictFromCsv(csv, true);
+      if (resp && resp.length) {
+        // for now show first result in analysis panel
+        const r = resp[0];
+        const explanationLines = r.featureContributions.features.map((f, i) => `${f}: ${r.featureContributions.contribuicoes[i].toFixed(4)}`);
+        setAnalysis({ verdict: `Probabilidade final: ${(r.finalProbability * 100).toFixed(1)}%`, explanation: explanationLines, timestamp: new Date().toISOString() });
+        window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Prediction (CSV) complete' } }));
+        // publish a global event so TransitPage can add to My Predictions (saved only on explicit Save there)
+        window.dispatchEvent(new CustomEvent('prediction:csv', { detail: { result: r, csv } }));
+      } else {
+        window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: 'No prediction returned' } }));
+      }
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: `Prediction failed: ${msg}` } }));
+    } finally {
       setAnalysisLoading(false);
-      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Analysis complete' } }));
-    }, 350);
+    }
   };
 
   const handleSavePrediction = async () => {

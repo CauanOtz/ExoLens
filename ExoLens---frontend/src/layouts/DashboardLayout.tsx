@@ -35,7 +35,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     const onOpen = () => setGeneratorOpen(true);
-    const onClose = () => setGeneratorOpen(false);
+    // when generator is closed via global event we want the sun to animate back
+    // to the dashboard position before removing the generator overlay. We reuse
+    // the same staged sequence used by the left-panel close button so the sun
+    // animates from its current position back to center.
+    const onClose = () => {
+      setLeftOpen(false);
+      setIsClosing(true);
+      setSunPhase('dashboard');
+      closeTimeoutRef.current = window.setTimeout(() => {
+        setIsClosing(false);
+        setGeneratorOpen(false);
+      }, 360);
+    };
     window.addEventListener('open-generator', onOpen as EventListener);
     window.addEventListener('close-generator', onClose as EventListener);
     // listen for auth changes from the AuthModal or other parts of the app
@@ -128,6 +140,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     window.setTimeout(() => setLeftOpen(true), 40);
   };
 
+  // Staged close: move sun back to dashboard phase so CSS can animate it, then
+  // remove the generator overlay after the transition completes.
+  const stageCloseGenerator = () => {
+    setLeftOpen(false);
+    setIsClosing(true);
+    setSunPhase('dashboard');
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setIsClosing(false);
+      setGeneratorOpen(false);
+      window.dispatchEvent(new CustomEvent('close-generator'));
+    }, 360);
+  };
   // note: closing handled inline where used (avoid unused fn)
 
   return (
@@ -200,7 +224,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null } }));
                 window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Logged out' } }));
               }}>
-                Sair
+                Exit
               </button>
             ) : (
               <>
@@ -228,11 +252,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         className={`sun-container-3d ${sunMenuOpen ? 'shift-right' : ''}`}
         aria-hidden="false"
         onClick={(e) => {
-          // Fallback: if click not captured by button (e.g. pointer-events issue), toggle here
           if ((e.target as HTMLElement).classList.contains('sun-hit-target')) return; // button already handles
           if (generatorOpen) {
-            setGeneratorOpen(false);
-            setLeftOpen(false);
+          // stage a smooth close so the sun animates back to center
+          stageCloseGenerator();
           }
             console.log('[DashboardLayout] toggling sunMenu from container click ->', !sunMenuOpen);
             setSunMenuOpen(o => !o);
@@ -247,8 +270,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             e.stopPropagation();
             console.log('[DashboardLayout] sun-hit-target clicked ->', !sunMenuOpen);
             if (generatorOpen) {
-              setGeneratorOpen(false);
-              setLeftOpen(false);
+                // stage close so sun returns to dashboard before overlay is removed
+                stageCloseGenerator();
             }
             setSunMenuOpen(o => !o);
             setClickFlash(true);
@@ -283,6 +306,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             onClick={() => {
             setLeftOpen(false);
             setIsClosing(true);
+            setSunPhase('dashboard');
             // shorten the close delay to match new CSS close transitions
             closeTimeoutRef.current = window.setTimeout(() => {
               setIsClosing(false);

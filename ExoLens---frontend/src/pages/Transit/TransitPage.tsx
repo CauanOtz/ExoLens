@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './TransitPage.css';
-import { fetchExoplanets, saveExoplanetPrediction } from '../../services/exoplanetService';
+import { fetchExoplanets, saveExoplanetPrediction, registerPrediction } from '../../services/exoplanetService';
 import type { Exoplanet } from '../../types/exoplanet';
 
 type Transit = {
@@ -62,6 +62,27 @@ const TransitPage: React.FC = () => {
       setUserId(null);
       setTab('all');
     }
+    // react to login/logout events so the page updates without reload
+    const onAuth = (ev: Event) => {
+      const detail = (ev as CustomEvent)?.detail;
+      const user = detail?.user;
+      const token = detail?.token;
+      if (user && (user.id || user.userId)) {
+        const id = user.id ?? user.userId;
+        setIsLoggedIn(true);
+        setUserId(id);
+        setTab('my');
+      } else if (token && typeof token === 'string') {
+        // token-only login: try to read userId from localStorage if present
+        const stored = localStorage.getItem('userId');
+        if (stored) { setIsLoggedIn(true); setUserId(stored); setTab('my'); }
+      } else {
+        setIsLoggedIn(false);
+        setUserId(null);
+        setTab('all');
+      }
+    };
+    window.addEventListener('auth-changed', onAuth as EventListener);
     return () => window.clearTimeout(t);
   }, []);
 
@@ -80,7 +101,56 @@ const TransitPage: React.FC = () => {
       }
     }
     load();
-    return () => { mounted = false; };
+    // listen for CSV prediction events coming from PlanetBuilderPanel
+    const onCsvPrediction = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (!detail || !detail.result) return;
+      const r = detail.result as any;
+      // Map prediction response into a Transit-like object for preview
+      const id = `user-csv-${Date.now()}`;
+      const planet = (r.inputData?.description) || 'CSV prediction';
+      const date = new Date().toISOString().slice(0,10);
+      const depth = r.inputData?.signalParams?.transit_depth_value ? `${r.inputData.signalParams.transit_depth_value} ppm` : '—';
+      const duration = r.inputData?.signalParams?.transit_duration_value ? `${r.inputData.signalParams.transit_duration_value} hr` : '—';
+      const snr = r.inputData?.signalParams?.signal_to_noise ?? (r.finalProbability ? Math.round(r.finalProbability * 100) : 0);
+
+      const transitRow: Transit = {
+        id,
+        planet,
+        date,
+        depth,
+        duration,
+        snr,
+        owner: null,
+        orbital_period: r.inputData?.signalParams?.orbital_period_value ?? undefined,
+        transit_duration_hr: r.inputData?.signalParams?.transit_duration_value ?? undefined,
+        transit_depth_ppm: r.inputData?.signalParams?.transit_depth_value ?? undefined,
+        planet_radius_earth: r.inputData?.candidateParams?.radius_value ?? undefined,
+        stellar_temp_k: r.inputData?.starParams?.effective_temperature_value ?? undefined,
+        stellar_radius_solar: r.inputData?.starParams?.radius_value ?? undefined,
+        stellar_mass_solar: r.inputData?.starParams?.mass_value ?? undefined,
+        impact_parameter: r.inputData?.signalParams?.impact_parameter_value ?? undefined,
+        equilibrium_temp: r.inputData?.candidateParams?.equilibrium_temp ?? undefined,
+        stellar_density: undefined,
+        duration_over_period: undefined,
+        depth_per_planet_radius: undefined,
+        signal_to_noise: r.inputData?.signalParams?.signal_to_noise ?? undefined,
+      };
+
+      // attach raw AI result so we can persist it when user saves
+      (transitRow as any).aiExplain = { finalProbability: r.finalProbability, featureContributions: r.featureContributions };
+      (transitRow as any).inputSnapshot = r.inputData;
+
+      setRows(prev => {
+        const next = [transitRow, ...prev];
+        return next;
+      });
+      // open details for quick inspection
+      setModalData(transitRow);
+      setModalOpen(true);
+    };
+    window.addEventListener('prediction:csv', onCsvPrediction as EventListener);
+    return () => { mounted = false; window.removeEventListener('prediction:csv', onCsvPrediction as EventListener); };
   }, []);
 
   function mapExoplanetToTransit(e: Exoplanet): Transit {
@@ -134,9 +204,71 @@ const TransitPage: React.FC = () => {
       window.alert('Log in to save predictions to your profile.');
       return;
     }
-
     const isApiItem = !r.id.startsWith('user-');
     (async () => {
+      // If this row represents an AI-prediction (has aiExplain/inputSnapshot), send full payload to register endpoint
+      const aiExplain = (r as any).aiExplain;
+      const inputSnapshot = (r as any).inputSnapshot;
+      if (aiExplain && inputSnapshot) {
+        // build RegisterPredicitionDTO-compatible payload
+        const payload = {
+          description: inputSnapshot.description ?? `Prediction from UI ${r.planet}`,
+          probability: aiExplain.finalProbability ?? 0,
+          classification: 'CANDIDATE',
+          createdAt: new Date().toISOString(),
+          starParams: {
+            effective_temperature_value: inputSnapshot.starParams?.effective_temperature_value ?? null,
+            effective_temperature_unit: inputSnapshot.starParams?.effective_temperature_unit ?? null,
+            radius_value: inputSnapshot.starParams?.radius_value ?? null,
+            radius_unit: inputSnapshot.starParams?.radius_unit ?? null,
+            mass_value: inputSnapshot.starParams?.mass_value ?? null,
+            mass_unit: inputSnapshot.starParams?.mass_unit ?? null,
+            effective_temperature_error: null, mass_error: null, radius_error: null,
+          },
+          candidateParams: {
+            radius_value: inputSnapshot.candidateParams?.radius_value ?? null,
+            radius_unit: inputSnapshot.candidateParams?.radius_unit ?? null,
+            equilibrium_temp: inputSnapshot.candidateParams?.equilibrium_temp ?? null,
+            mass_value: null, mass_error: null, radius_error: null, mass_unit: null,
+          },
+          signalParams: {
+            orbital_period_value: inputSnapshot.signalParams?.orbital_period_value ?? null,
+            orbital_period_unit: inputSnapshot.signalParams?.orbital_period_unit ?? null,
+            transit_duration_value: inputSnapshot.signalParams?.transit_duration_value ?? null,
+            transit_duration_unit: inputSnapshot.signalParams?.transit_duration_unit ?? null,
+            transit_depth_value: inputSnapshot.signalParams?.transit_depth_value ?? null,
+            impact_parameter_value: inputSnapshot.signalParams?.impact_parameter_value ?? null,
+            signal_to_noise: inputSnapshot.signalParams?.signal_to_noise ?? null,
+            impact_parameter_error: null, orbital_period_error: null, transit_duration_error: null, transit_depth_error: null,
+          },
+          userId,
+          aiExplain: aiExplain,
+          inputSnapshot: inputSnapshot,
+        };
+
+        try {
+          const created = await registerPrediction(payload);
+          // mark as owned and replace in UI with server id if provided
+          const owned: Transit = { ...r, owner: userId, id: created?.id ?? `user-${Date.now()}` };
+          setRows(prev => {
+            const found = prev.find(x => x.id === r.id);
+            let next: Transit[];
+            if (found) {
+              next = prev.map(p => (p.id === r.id ? owned : p));
+            } else {
+              next = [{ ...owned }, ...prev];
+            }
+            persistStored(next);
+            return next;
+          });
+          return;
+        } catch (err) {
+          console.warn('Register prediction failed, falling back to local save', err);
+          window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: 'Server save failed, saved locally instead' } }));
+        }
+      }
+
+      // Fallback: existing behavior — call saveExoplanetPrediction for API items, otherwise save locally
       if (isApiItem) {
         try {
           await saveExoplanetPrediction(r.id);
@@ -189,7 +321,7 @@ const TransitPage: React.FC = () => {
       <div className="transit-table-wrapper">
         {isLoggedIn && (
           <div className="tabs">
-            <button className={`tab ${tab === 'my' ? 'selected' : ''}`} onClick={() => setTab('my')}>Minhas Predições</button>
+            <button className={`tab ${tab === 'my' ? 'selected' : ''}`} onClick={() => setTab('my')}>My Predictions</button>
             <button className={`tab ${tab === 'all' ? 'selected' : ''}`} onClick={() => setTab('all')}>Exoplanetas</button>
           </div>
         )}
@@ -202,7 +334,7 @@ const TransitPage: React.FC = () => {
               <th>Depth</th>
               <th>Duration</th>
               <th>S/N</th>
-              <th style={{ width: 190 }}>Ações</th>
+              <th style={{ width: 190 }}>Actions</th>
             </tr>
           </thead>
           <tbody>

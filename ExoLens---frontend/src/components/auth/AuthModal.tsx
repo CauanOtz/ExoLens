@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AuthModal.css';
+import authService from '../../services/authService';
 
 // Definimos as props que o componente vai receber
 interface AuthModalProps {
@@ -116,9 +117,9 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
                     const data = await res.json();
                     // expected shape: { user: {...}, token: '...' }
                     if (data?.token) {
-                      localStorage.setItem('auth_token', data.token);
+                      authService.setToken(data.token);
                     }
-                    // dispatch change so other parts of the app can react
+                    // dispatch change so other parts of the app can react (include user)
                     window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: data?.user ?? null } }));
                     // notify success
                     window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Login successful' } }));
@@ -174,7 +175,7 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
                       if (loginRes.ok) {
                           const loginData = await loginRes.json();
                           if (loginData?.token) {
-                            localStorage.setItem('auth_token', loginData.token);
+                            authService.setToken(loginData.token);
                             window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: loginData?.user ?? null } }));
                             window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Account created and logged in' } }));
                           }
