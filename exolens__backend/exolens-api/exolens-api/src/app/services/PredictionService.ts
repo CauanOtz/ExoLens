@@ -71,16 +71,21 @@ export class PredictionService {
 
     /**
      */
-    async predictFromCsv(fileBuffer: Buffer, isRealData: boolean) {
+    async predictFromCsv(fileBuffer: Buffer, isRealData: boolean, userId: string) {
         const records = await this._parseCsv(fileBuffer);
 
         const predictionPromises = records.map(async (csvRow) => {
             try {
-                const predictionInput = this._mapCsvRowToRegisterPredictionDTO(csvRow);
+                // Primeiro, montamos o DTO apenas com os dados do CSV para enviar à IA
+                const predictionInputForAI = this._mapCsvRowToRegisterPredictionDTO(csvRow, 0, 'temp-id');
                 
-                this._validateMinimumFeatures(predictionInput);
+                this._validateMinimumFeatures(predictionInputForAI);
                 
-                return await this._callAiModel(predictionInput, isRealData);
+                // Chamamos a IA para obter a probabilidade real
+                const aiResult = await this._callAiModel(predictionInputForAI, isRealData);
+
+                // Agora, retornamos o objeto final com a probabilidade correta e os dados de entrada
+                return aiResult;
             } catch (error: any) {
                 return { error: `Falha na linha: ${JSON.stringify(csvRow)}`, details: error.message ?? 'Unknown error' };
             }
@@ -116,15 +121,15 @@ export class PredictionService {
     }
 
 
-    private _mapCsvRowToRegisterPredictionDTO(csvRow: any): RegisterPredicitionDTO {
+    private _mapCsvRowToRegisterPredictionDTO(csvRow: any, probability: number, userId: string): RegisterPredicitionDTO {
         
         const getVal = (key: string) => csvRow[key] ? parseFloat(csvRow[key]) : null;
 
         return {
             description: `Predição via CSV para objeto ${csvRow.id || 'desconhecido'}`,
-            probability: 0,
+            probability: probability,
             classification: 'CANDIDATE',
-            userId: 'csv-upload-process',
+            userId: userId,
             
             starParams: {
                 effective_temperature_value: getVal('stellar_temp_k'),

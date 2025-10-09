@@ -89,8 +89,12 @@ export class PredictionController {
             if (!req.file) {
                 throw new BadRequestError('Nenhum arquivo CSV foi enviado.');
             }
+            const userId = req.user?.id;
+            if (!userId) {
+                return res.status(401).json({ message: 'Unauthorized: User not authenticated.' });
+            }
             const isRealData = req.query.isRealData === 'true';
-            const results = await this.predictionService.predictFromCsv(req.file.buffer, isRealData);
+            const results = await this.predictionService.predictFromCsv(req.file.buffer, isRealData, userId);
             return res.status(200).json(results);
         } catch (error) {
             next(error);
