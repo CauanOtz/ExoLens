@@ -9,9 +9,18 @@ function buildUrl(path: string) {
 }
 
 export async function fetchExoplanets(): Promise<Exoplanet[]> {
-  const response = await fetch(buildUrl('/api/exoplanets'));
+  let response: Response;
+  try {
+    response = await fetch(buildUrl('/api/exoplanets'));
+  } catch (err: any) {
+    const msg = `Network error loading exoplanets: ${err?.message ?? err}`;
+    window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: msg } }));
+    throw err;
+  }
   if (!response.ok) {
-    throw new Error(`Failed to load exoplanets: ${response.status}`);
+    const msg = `Failed to load exoplanets: ${response.status}`;
+    window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: msg } }));
+    throw new Error(msg);
   }
   const contentType = response.headers.get('content-type') || '';
   // If the server returned HTML (often an index.html or an error page) flag it clearly
@@ -22,6 +31,7 @@ export async function fetchExoplanets(): Promise<Exoplanet[]> {
     throw new Error(`Unexpected response content-type: ${contentType || 'unknown'}. Response snippet: ${snippet}`);
   }
   const data = await response.json();
+  // no notify for successful fetch by default
   return Array.isArray(data) ? data : [];
 }
 
@@ -44,6 +54,8 @@ export async function saveExoplanetPrediction(id: string): Promise<void> {
     } catch (_) {
       // ignore JSON parse errors
     }
+    window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message } }));
     throw new Error(message);
   }
+  window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Prediction saved' } }));
 }

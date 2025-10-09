@@ -60,31 +60,24 @@
   }
 }
 
-.preview-fixed { height: 640px; max-height: 72vh; }
+.preview-fixed { height: min(520px, 64vh); max-height: 64vh; }
 
-/* Stronger overrides to prevent global layout CSS from animating/expanding the preview-shell */
-.generator-right .preview-shell {
-  height: 640px !important;
-  max-height: 72vh !important;
-  min-height: 360px !important;
-  transition: none !important;
-  overflow: hidden !important;
+
+.preview-nav-button {
+  outline: none;
+  border: none;
+}
+.preview-nav-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+.preview-nav-button:focus-visible {
+  outline: 2px solid rgba(123, 228, 255, 0.9);
+  outline-offset: 4px;
 }
 
+.generator-panel { height: 100%; display: flex; flex-direction: row; }
+.generator-panel .generator-right { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; overflow: auto; padding: 18px; box-sizing: border-box; }
+
+.generator-panel .generator-right .preview-shell { width: min(820px, 86%); height: min(520px, 60vh); max-height: 64vh; min-height: 240px; box-sizing: border-box; transition: none; }
 .generator-panel .generator-right .preview-shell .preview-overlay { transition: none; }
-
-/* Keep overrides scoped to the in-component generator panel so we don't
-   accidentally change layout for other parts of the app. */
-.generator-panel .generator-right {
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.generator-panel .generator-right .preview-shell {
-  width: min(920px, 86% );
-  height: 640px;
-  max-height: 72vh;
-  min-height: 360px;
-  box-sizing: border-box;
-}

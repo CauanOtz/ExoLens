@@ -159,7 +159,8 @@ function buildInfoBadges(exoplanet: Exoplanet): InfoBadge[] {
       label: 'Archive probability',
       value: probabilityPercent != null ? `${probabilityPercent.toFixed(1)}%` : '—',
       hint: 'Score reported by NASA archive for this candidate.',
-      style: { left: '50%', bottom: '-50px', transform: 'translateX(-50%)' } as React.CSSProperties,
+      /* keep the badge centered but inside the preview so it is always visible */
+      style: { left: '50%', bottom: '14px', transform: 'translateX(-50%)' } as React.CSSProperties,
       highlight: true,
     },
   ];
@@ -193,7 +194,9 @@ export default function PlanetBuilderPanel() {
       })
       .catch((error) => {
         if (!mounted) return;
-        setFetchError(error instanceof Error ? error.message : 'Failed to load exoplanets');
+        const msg = error instanceof Error ? error.message : 'Failed to load exoplanets';
+        setFetchError(msg);
+        window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: msg } }));
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -239,10 +242,12 @@ export default function PlanetBuilderPanel() {
   const handleRunAnalysis = () => {
     if (!currentPlanet) return;
     setAnalysisLoading(true);
+    window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Running analysis…' } }));
     // Simulate a short delay to mirror a model request and improve UX feedback
     window.setTimeout(() => {
       setAnalysis(buildAnalysis(currentPlanet));
       setAnalysisLoading(false);
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Analysis complete' } }));
     }, 350);
   };
 
@@ -253,9 +258,11 @@ export default function PlanetBuilderPanel() {
     try {
       await saveExoplanetPrediction(currentPlanet.id);
       setSaveStatus({ type: 'success', message: 'Prediction saved successfully.' });
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Prediction saved successfully' } }));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to save prediction.';
       setSaveStatus({ type: 'error', message });
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message } }));
     } finally {
       setSaving(false);
     }
@@ -291,6 +298,35 @@ export default function PlanetBuilderPanel() {
         <div className="generator-right" style={{ padding: '60px 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 18, color: '#cfe8f7', fontWeight: 600 }}>No exoplanets found for this filter.</div>
           <div style={{ marginTop: 12, color: 'rgba(255,255,255,0.7)' }}>Try selecting a different classification.</div>
+          <div style={{ marginTop: 18, display: 'flex', justifyContent: 'center', gap: 12 }}>
+            <button
+              onClick={() => { setFilter('ALL'); setCurrentIndex(0); }}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(123,228,255,0.18)',
+                background: 'linear-gradient(92deg, rgba(11,152,201,0.85), rgba(123,228,255,0.85))',
+                color: '#041622',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Show all exoplanets
+            </button>
+            <button
+              onClick={() => setFilter('OTHER')}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(255,255,255,0.02)',
+                color: '#f1fbff',
+                cursor: 'pointer'
+              }}
+            >
+              Show other
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -326,6 +362,24 @@ export default function PlanetBuilderPanel() {
               })}
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  // signal the layout to close the generator and return to dashboard
+                  window.dispatchEvent(new CustomEvent('close-generator'));
+                }}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: '#f1fbff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Back to dashboard
+              </button>
               <button
                 onClick={handleRunAnalysis}
                 disabled={analysisLoading}
@@ -373,29 +427,30 @@ export default function PlanetBuilderPanel() {
             }}
           >
             {planetAppearance && (
-              <div style={{ position: 'relative', width: '100%', height: 520, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: '100%', height: 'clamp(360px, 36vw, 520px)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <PlanetPreview3D
                   color={planetAppearance.color}
                   composition={planetAppearance.composition}
-                  radius={planetAppearance.radius * 1.6}
+                  radius={planetAppearance.radius * 1.1}
                 />
 
                 <button
                   type="button"
                   aria-label="Show previous exoplanet"
                   onClick={handlePrev}
+                  className="preview-nav-button"
                   style={{
                     position: 'absolute',
                     left: 18,
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    width: 54,
-                    height: 54,
+                    width: 44,
+                    height: 44,
                     borderRadius: '50%',
                     border: 'none',
-                    background: 'rgba(4, 12, 24, 0.65)',
+                    background: 'rgba(4, 12, 24, 0)',
                     color: '#f5faff',
-                    fontSize: 28,
+                    fontSize: 22,
                     cursor: 'pointer',
                     boxShadow: '0 6px 18px rgba(2,10,26,0.45)',
                   }}
@@ -407,18 +462,19 @@ export default function PlanetBuilderPanel() {
                   type="button"
                   aria-label="Show next exoplanet"
                   onClick={handleNext}
+                  className="preview-nav-button"
                   style={{
                     position: 'absolute',
                     right: 18,
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    width: 54,
-                    height: 54,
+                    width: 44,
+                    height: 44,
                     borderRadius: '50%',
                     border: 'none',
-                    background: 'rgba(4, 12, 24, 0.65)',
+                    background: 'rgba(4, 12, 24, 0)',
                     color: '#f5faff',
-                    fontSize: 28,
+                    fontSize: 22,
                     cursor: 'pointer',
                     boxShadow: '0 6px 18px rgba(2,10,26,0.45)',
                   }}

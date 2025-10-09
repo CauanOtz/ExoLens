@@ -28,10 +28,13 @@ export function RealisticSun() {
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // Camera setup com aspect dinâmico
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.z = 15;
-    cameraRef.current = camera;
+  // Camera setup com aspect dinâmico
+  // We'll scale the sun up and move the camera back proportionally so the
+  // sun appears much larger while staying correctly framed.
+  const SUN_SCALE = 30; // increase or decrease to tune sun size
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+  camera.position.z = SUN_SCALE * 4.5;
+  cameraRef.current = camera;
 
     // Renderer setup (usa tamanho real do container)
     const renderer = new THREE.WebGLRenderer({
@@ -202,15 +205,26 @@ export function RealisticSun() {
     sunMaterialRef.current = sunMaterial;
 
     const sun = new THREE.Mesh(geometry, sunMaterial);
+    // scale the base geometry so the sun becomes visually large
+    // SUN_SCALE is defined above when setting up the camera
+    // @ts-ignore - use numeric property from outer scope
+    if (typeof (window as any).SUN_SCALE === 'number') {
+      const s = (window as any).SUN_SCALE;
+      sun.scale.setScalar(s);
+    } else {
+      // fallback using a local constant tuned to match the camera change
+      sun.scale.setScalar(20);
+    }
     scene.add(sun);
     sunRef.current = sun;
 
-    // Lights
-    const light = new THREE.PointLight(0xffaa33, 5, 100);
-    scene.add(light);
+  // Lights - increase intensity/range because sun is scaled up
+  const light = new THREE.PointLight(0xffaa33, 8, 1600);
+  light.position.set(0, 0, 0);
+  scene.add(light);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
 
     // Inner Glow
     const glowGeometry = new THREE.SphereGeometry(1.2, 32, 32);
@@ -237,9 +251,11 @@ export function RealisticSun() {
       blending: THREE.AdditiveBlending,
       transparent: true
     });
-    const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
-    scene.add(glowMesh);
-    glowMeshRef.current = glowMesh;
+  const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+  // scale inner glow proportionally
+  glowMesh.scale.setScalar(22);
+  scene.add(glowMesh);
+  glowMeshRef.current = glowMesh;
 
     // Outer Glow
     const outerGlowGeometry = new THREE.SphereGeometry(1.5, 32, 32);
@@ -266,8 +282,10 @@ export function RealisticSun() {
       blending: THREE.AdditiveBlending,
       transparent: true
     });
-    const outerGlowMesh = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
-    scene.add(outerGlowMesh);
+  const outerGlowMesh = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+  // scale outer glow proportionally
+  outerGlowMesh.scale.setScalar(28);
+  scene.add(outerGlowMesh);
 
     // Animation
     const animate = () => {

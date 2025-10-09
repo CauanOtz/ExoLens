@@ -7,6 +7,7 @@ import SunModel from '../components/three/SunModel';
 import { AboutSection } from '../pages/Settings/AboutSection';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
+import ToastContainer from '../components/ui/ToastContainer';
 // lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
 const PlanetBuilderPanel = React.lazy(() => import('../components/three/PlanetBuilderPanel'));
 
@@ -15,6 +16,7 @@ interface DashboardLayoutProps { children: ReactNode }
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalView, setModalView] = useState<'login' | 'signup'>('login');
+  const [authUser, setAuthUser] = useState<any | null>(null);
   const openAuthModal = (view: 'login' | 'signup') => { setModalView(view); setIsModalOpen(true); };
   const [generatorOpen, setGeneratorOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
@@ -36,9 +38,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const onClose = () => setGeneratorOpen(false);
     window.addEventListener('open-generator', onOpen as EventListener);
     window.addEventListener('close-generator', onClose as EventListener);
+    // listen for auth changes from the AuthModal or other parts of the app
+    const onAuth = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (detail && typeof detail === 'object') setAuthUser(detail.user ?? null);
+      else setAuthUser(null);
+    };
+    window.addEventListener('auth-changed', onAuth as EventListener);
+
+    // initialize auth state from localStorage token if present
+    const token = localStorage.getItem('auth_token');
+    if (token) setAuthUser({});
     return () => {
       window.removeEventListener('open-generator', onOpen as EventListener);
       window.removeEventListener('close-generator', onClose as EventListener);
+      window.removeEventListener('auth-changed', onAuth as EventListener);
     };
   }, []);
 
@@ -119,79 +133,96 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className={`dashboard-layout sun-phase-${sunPhase} ${generatorOpen ? 'generator-open' : ''} ${isClosing ? 'generator-closing' : ''} ${sunMenuOpen ? 'sun-menu-open' : ''} ${transitOpen ? 'transit-open' : ''} ${transitActive ? 'transit-active' : ''}`}>
       <header className="dashboard-header">
-        <img
-          src={new URL('../assets/NOISE/NoiseLogo.png', import.meta.url).href}
-          alt="NOISE Logo"
-          className="header-logo"
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            // navigate to home/dashboard and reset layout panels
-            navigate('/');
-            setGeneratorOpen(false);
-            setLeftOpen(false);
-            setTransitOpen(false);
-            setTransitActive(false);
-            setSunMenuOpen(false);
-            setSunPhase('dashboard');
-          }}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }}
-        />
+        <div className="header-left">
+          <img
+            src={new URL('../assets/NOISE/NoiseLogo.png', import.meta.url).href}
+            alt="NOISE Logo"
+            className="header-logo"
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              // navigate to home/dashboard and reset layout panels
+              navigate('/');
+              setGeneratorOpen(false);
+              setLeftOpen(false);
+              setTransitOpen(false);
+              setTransitActive(false);
+              setSunMenuOpen(false);
+              setSunPhase('dashboard');
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }}
+          />
+        </div>
+
+        <div className="header-center">
+          <div className="planet-context-chip">
+            <button
+              className="planet-context-action"
+              onClick={() => { openTransit(); setSunPhase('transit'); }}
+              aria-label="Exoplanets"
+              title="Exoplanets"
+            >
+              <span>Exoplanets Table</span>
+            </button>
+            <button
+              className="planet-context-action"
+              onClick={() => { openGenerator(); setSunPhase('generator'); }}
+              aria-label="Generator"
+              title="Generator"
+            >
+              <span>Exoplanets 3D</span>
+            </button>
+            <button
+              className="planet-context-action"
+              onClick={() => {
+                setSolarShowcaseOpen(true);
+                setSunPhase('settings');
+                setGeneratorOpen(false);
+                setTransitOpen(false);
+                setLeftOpen(false);
+                setSunMenuOpen(false);
+              }}
+              aria-label="Show Solar System"
+              title="Solar System"
+            >
+              <span>Solar System</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="header-right">
+          <nav className="auth-links">
+            {authUser ? (
+              <button className="auth-button" onClick={() => {
+                // logout: clear token and notify listeners
+                localStorage.removeItem('auth_token');
+                setAuthUser(null);
+                window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null } }));
+                window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Logged out' } }));
+              }}>
+                Sair
+              </button>
+            ) : (
+              <>
+                <button className="auth-link" onClick={() => openAuthModal('login')}>
+                  Log-in
+                </button>
+                <button className="auth-button" onClick={() => openAuthModal('signup')}>
+                  Sign-in
+                </button>
+              </>
+            )}
+          </nav>
+        </div>
       </header>
-       <nav className="auth-links">
-        <button className="auth-link" onClick={() => openAuthModal('login')}>
-          Log-in
-        </button>
-        <button className="auth-button" onClick={() => openAuthModal('signup')}>
-          Sign-in
-        </button>
-      </nav>
       <div className="space-bg" aria-hidden="true">
         <div className="stars-small" aria-hidden="true" />
         <div className="stars-large" aria-hidden="true" />
         <div className="space-particles" aria-hidden="true" />
       </div>
   <div key={routePulseKey} className="hero-overlay route-pulse" aria-hidden={transitActive}>
-        <h1 className="hero-title">ExoLens</h1>
-        <p className="hero-subtitle">Exoplanet scanner and generator — explore and create worlds based on planetary composition.</p>
-        <div className="planet-context-chip">
-            <>
-              <button
-                className="planet-context-action"
-                onClick={() => { openTransit(); setSunPhase('transit'); }}
-                  aria-label="Transits"
-                  title="Transits"
-              >
-                <span>Transits</span>
-              </button>
-              <button
-                className="planet-context-action"
-                onClick={() => { openGenerator(); setSunPhase('generator'); }}
-                aria-label="Generator"
-                title="Generator"
-              >
-                <span>Generator</span>
-              </button>
-              <button
-                className="planet-context-action"
-                onClick={() => {
-                  // open the Solar System showcase in-layout and animate the sun to the top-left
-                  setSolarShowcaseOpen(true);
-                  setSunPhase('settings');
-                  // close other panels
-                  setGeneratorOpen(false);
-                  setTransitOpen(false);
-                  setLeftOpen(false);
-                  setSunMenuOpen(false);
-                }}
-                aria-label="Show Solar System"
-                title="Solar System"
-              >
-                <span>Solar System</span>
-              </button>
-            </>
-          
-        </div>
+  <div className="background-word" data-text="ExoLens">ExoLens</div>
+    <h1 className="hero-title">ExoLens</h1>
       </div>
       <div
         className={`sun-container-3d ${sunMenuOpen ? 'shift-right' : ''}`}
@@ -239,7 +270,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* In-layout Transit panel (slides in without route change) */}
       <div className={`transit-panel ${transitOpen ? 'open' : ''} ${transitActive ? 'active' : ''}`} aria-hidden={!transitOpen}>
         <div className="transit-panel-inner">
-          <button className="transit-close" onClick={() => { setTransitActive(false); setTimeout(() => setTransitOpen(false), 320); }} aria-label="Close Transits">×</button>
+          <button className="transit-close" onClick={() => { setTransitActive(false); setSunPhase('dashboard'); setTimeout(() => setTransitOpen(false), 320); }} aria-label="Close Transits">×</button>
           <TransitPage />
         </div>
       </div>
@@ -298,6 +329,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         onClose={() => setIsModalOpen(false)}
         initialView={modalView}
       />
+      <ToastContainer />
       {/* Floating About button (bottom-left) - only on dashboard */}
       {sunPhase === 'dashboard' && (
         <button

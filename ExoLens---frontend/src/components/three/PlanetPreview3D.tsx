@@ -35,8 +35,8 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
   let width = mount.clientWidth || 0;
   let height = mount.clientHeight || 0;
   if (height < 48) {
-    // apply a soft fallback so users immediately see a preview area instead of 0 height
-    mount.style.minHeight = mount.style.minHeight || '360px';
+    // apply a softer fallback so users immediately see a preview area instead of 0 height
+    mount.style.minHeight = mount.style.minHeight || '280px';
     const rect = mount.getBoundingClientRect();
     width = Math.max(width, Math.round(rect.width));
     height = Math.max(height, Math.round(rect.height));
@@ -69,7 +69,8 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
 
     const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-  camera.position.set(0, 0, Math.max(3, radius * 3.5));
+  // move camera slightly further back to make the planet appear smaller in the same frame
+  camera.position.set(0, 0, Math.max(4.5, radius * 4.5));
 
   let renderer: THREE.WebGLRenderer;
     try {
@@ -286,8 +287,8 @@ export default function PlanetPreview3D({ color = '#c66', radius = 1, compositio
       const spherePxRadius = internalRadius * pxPerWorld;
 
   // place overlay to the right of the planet, slightly above center
-  // increase horizontal gap so the overlay sits a bit farther from the sphere
-  const left = Math.round(cx + spherePxRadius + 80);
+  // reduced horizontal gap so it stays closer to the sphere on smaller previews
+  const left = Math.round(cx + spherePxRadius + 48);
       const top = Math.round(cy - spherePxRadius * 0.45);
       setOverlayPos({ left, top: Math.max(8, top) });
     };
