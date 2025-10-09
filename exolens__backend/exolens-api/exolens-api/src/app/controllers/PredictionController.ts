@@ -76,6 +76,11 @@ export class PredictionController {
       async predictFromForm(req: Request, res: Response, next: NextFunction) {
         try {
             const isRealData = req.query.isRealData === 'true';
+            // Log a compact snapshot of the JSON payload sent from the frontend
+            try {
+              const preview = JSON.stringify(req.body);
+              console.log(`[AI FORM] Received payload (isRealData=${isRealData}) from user=${req.user?.id ?? 'n/a'} ->`, preview);
+            } catch {}
             const predictionInput = registerPredictionSchema.parse(req.body);
             const result = await this.predictionService.predictFromForm(predictionInput, isRealData);
             return res.status(200).json(result);
@@ -94,7 +99,48 @@ export class PredictionController {
                 return res.status(401).json({ message: 'Unauthorized: User not authenticated.' });
             }
             const isRealData = req.query.isRealData === 'true';
-            const results = await this.predictionService.predictFromCsv(req.file.buffer, isRealData, userId);
+
+            // --- Logging of incoming CSV payload from frontend ---
+            try {
+                const text = req.file.buffer.toString('utf8');
+                const lines = text.split(/\r?\n/);
+                const header = (lines[0] || '').trim();
+                const sampleRows = lines.slice(1, Math.min(lines.length, 6)).filter(Boolean);
+                const headerCols = header ? header.split(',').length : 0;
+                console.log(`[AI CSV] Received file from user=${userId} isRealData=${isRealData} size=${req.file.size}B type=${req.file.mimetype} name=${req.file.originalname || 'blob'}`);
+                console.log(`[AI CSV] Header (${headerCols} cols): ${header}`);
+                if (sampleRows.length) {
+                  console.log(`[AI CSV] First ${sampleRows.length} row(s):`);
+                  for (const r of sampleRows) {
+                    const cols = r.split(',').length;
+                    const mismatch = headerCols && cols !== headerCols ? ` [MISMATCH header=${headerCols} vs row=${cols}]` : '';
+                    console.log(`${r}${mismatch}`);
+                  }
+                } else {
+                  console.log('[AI CSV] No data rows found after header.');
+                }
+                // Log extra form fields (e.g., kepid and errors) sent along with the file
+                if (req.body && Object.keys(req.body).length) {
+                  const { kepid, transition_depth_error, impact_parameter_error, planet_id, ...rest } = req.body as any;
+                  console.log('[AI CSV] Meta fields:', {
+                    kepid: kepid ?? null,
+                    transition_depth_error: transition_depth_error ?? null,
+                    impact_parameter_error: impact_parameter_error ?? null,
+                    planet_id: planet_id ?? null,
+                    extra: Object.keys(rest).length ? rest : undefined,
+                  });
+                }
+            } catch (e) {
+                console.warn('[AI CSV] Failed to log CSV preview:', (e as Error)?.message);
+            }
+            // --- End logging ---
+
+            const results = await this.predictionService.predictFromCsv(
+              req.file.buffer,
+              isRealData,
+              userId,
+              req.body && Object.keys(req.body).length ? (req.body as any) : undefined,
+            );
             return res.status(200).json(results);
         } catch (error) {
             next(error);

@@ -72,6 +72,12 @@ export const viewPredictionSchema = z.object({
     equilibrium_temp: z.number().nullable(),
     signal_to_noise: z.number().nullable(),
     existingData: z.boolean(),
+    transition_depth_value: z.number().nullable(),
+    transition_depth_error: z.number().nullable(),
+    impact_parameter_value: z.number().nullable(),
+    impact_parameter_error: z.number().nullable(),
+    // New: expose NASA kepid when available
+    kepid: z.number().nullable(),
 })
 
 const measurementValueAndError = z.object({
@@ -124,7 +130,8 @@ type PredictionWithFlatParams = {
   candidateParams: CandidateParams;
   signalParams: SignalParams;
   existingData: boolean;
-  userId: string;
+  // Optional kepid pass-through for view mapping
+  kepid?: number | null;
 };
 
 export function formatPredictionByViewSchema(prediction: any): ViewPredictionDTO {
@@ -151,7 +158,11 @@ export function formatPredictionByViewSchema(prediction: any): ViewPredictionDTO
     equilibrium_temp: prediction.candidateParams?.equilibrium_temp ?? null,
     signal_to_noise: prediction.signalParams?.signal_to_noise ?? null,
     existingData: prediction.existingData,
-    
+    transition_depth_value: prediction.signalParams?.transit_depth_value ?? null,
+    transition_depth_error: prediction.signalParams?.transit_depth_error ?? null,
+    impact_parameter_value: prediction.signalParams?.impact_parameter_value ?? null,
+    impact_parameter_error: prediction.signalParams?.impact_parameter_error ?? null,
+    kepid: prediction.kepid ?? null,
   };
   return predictionDTO;
 }
@@ -213,7 +224,7 @@ export function formatPredictionForResponse(prediction: PredictionWithFlatParams
         error: prediction.signalParams?.impact_parameter_error ?? null,
       },
     },
-    userId: prediction.userId,
+    userId: (prediction as any).userId,
     existingData: prediction.existingData,
   };
 

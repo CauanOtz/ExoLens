@@ -8,8 +8,9 @@ import { AboutSection } from '../pages/Settings/AboutSection';
 import TransitPage from '../pages/Transit/TransitPage';
 import './DashboardLayout.css';
 import ToastContainer from '../components/ui/ToastContainer';
-// lazy-load heavy generator panel to avoid parsing/initializing Three.js until needed
 const PlanetBuilderPanel = React.lazy(() => import('../components/three/PlanetBuilderPanel'));
+import { listMyPredictions, deletePrediction } from '../services/exoplanetService';
+import type { ViewPrediction } from '../types/prediction';
 
 interface DashboardLayoutProps { children: ReactNode }
 
@@ -30,6 +31,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [transitActive, setTransitActive] = useState(false);
   const [solarShowcaseOpen, setSolarShowcaseOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [myPredsOpen, setMyPredsOpen] = useState(false);
+  const [myPredsLoading, setMyPredsLoading] = useState(false);
+  const [myPreds, setMyPreds] = useState<ViewPrediction[]>([]);
+  const [myPredsError, setMyPredsError] = useState<string | null>(null);
+  const [selectedPred, setSelectedPred] = useState<ViewPrediction | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -154,6 +160,46 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
   // note: closing handled inline where used (avoid unused fn)
 
+  // Refresh when a prediction is saved via global events
+  useEffect(() => {
+    const onSaved = () => { if (myPredsOpen) void loadMyPreds(); };
+    window.addEventListener('prediction:saved', onSaved as EventListener);
+    return () => window.removeEventListener('prediction:saved', onSaved as EventListener);
+  }, [myPredsOpen]);
+
+  async function loadMyPreds() {
+    setMyPredsLoading(true);
+    setMyPredsError(null);
+    try {
+      const list = await listMyPredictions();
+      setMyPreds(list);
+    } catch (e: any) {
+      setMyPredsError(e?.message ?? 'Failed to load predictions');
+    } finally {
+      setMyPredsLoading(false);
+    }
+  }
+
+  function openMyPreds() {
+    if (!authUser) {
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Please log in to view your predictions.' } }));
+      openAuthModal('login');
+      return;
+    }
+    setMyPredsOpen(true);
+    void loadMyPreds();
+  }
+
+  async function removePrediction(id: string) {
+    try {
+      await deletePrediction(id);
+      setMyPreds(prev => prev.filter(p => p.id !== id));
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Prediction deleted' } }));
+    } catch (e: any) {
+      window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', message: e?.message ?? 'Delete failed' } }));
+    }
+  }
+
   return (
     <div className={`dashboard-layout sun-phase-${sunPhase} ${generatorOpen ? 'generator-open' : ''} ${isClosing ? 'generator-closing' : ''} ${sunMenuOpen ? 'sun-menu-open' : ''} ${transitOpen ? 'transit-open' : ''} ${transitActive ? 'transit-active' : ''}`}>
       <header className="dashboard-header">
@@ -237,6 +283,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </>
             )}
           </nav>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+          <button
+            type="button"
+            onClick={openMyPreds}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 10,
+              border: '1px solid rgba(123,228,255,0.2)',
+              background: 'rgba(8, 20, 38, 0.65)',
+              color: '#f1fbff',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            My predictions
+          </button>
         </div>
       </header>
       <div className="space-bg" aria-hidden="true">
@@ -368,6 +431,80 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {aboutOpen && <AboutSection onClose={() => setAboutOpen(false)} />}
       {/* generator-screen removed: we now use left-options + animated sun for the entry flow */}
+      {myPredsOpen && (
+        <div role="dialog" aria-label="My predictions" className="modal-overlay" onClick={() => setMyPredsOpen(false)}>
+          <div className="modal-card" style={{ maxWidth: 840 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: '#e9f7ff' }}>My predictions</h3>
+              <button onClick={() => setMyPredsOpen(false)} style={{ background: 'transparent', border: 'none', color: '#9fd8ff', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              {myPredsLoading && <div style={{ color: '#cfe8f7' }}>Loading…</div>}
+              {myPredsError && <div style={{ color: '#ffb3b3' }}>{myPredsError}</div>}
+              {!myPredsLoading && !myPredsError && (
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {myPreds.length === 0 ? (
+                    <div style={{ color: 'rgba(255,255,255,0.75)' }}>
+                      You have no saved predictions yet. Run an analysis and click "Save prediction" to store it.
+                    </div>
+                  ) : (
+                    myPreds.map(p => (
+                      <div key={p.id} style={{
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 10,
+                        padding: 12,
+                        background: 'rgba(255,255,255,0.03)',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr auto',
+                        gap: 8,
+                      }}>
+                        <div>
+                          <div style={{ color: '#e6f7ff', fontWeight: 700 }}>{p.id}</div>
+                          <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{p.description}</div>
+                          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 4 }}>
+                            Class: {p.classification} · Prob: {p.probability != null ? (p.probability * 100).toFixed(1) + '%' : '—'}
+                            {p.kepid != null ? ` · KEPID: ${p.kepid}` : ''}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <button
+                            onClick={() => setSelectedPred(p)}
+                            style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(123,228,255,0.2)', background: 'rgba(8,20,38,0.65)', color: '#e9f7ff', cursor: 'pointer' }}
+                          >
+                            View details
+                          </button>
+                          <button
+                            onClick={() => removePrediction(p.id)}
+                            style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,105,105,0.25)', background: 'rgba(60,12,12,0.45)', color: '#ffd6d6', cursor: 'pointer' }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedPred && (
+        <div role="dialog" aria-label="Prediction details" className="modal-overlay" onClick={() => setSelectedPred(null)}>
+          <div className="modal-card" style={{ maxWidth: 760 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: '#e9f7ff' }}>Prediction details</h3>
+              <button onClick={() => setSelectedPred(null)} style={{ background: 'transparent', border: 'none', color: '#9fd8ff', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ marginTop: 12, color: '#dff3ff', fontSize: 13 }}>
+              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(255,255,255,0.04)', padding: 12, borderRadius: 8 }}>
+{JSON.stringify(selectedPred, null, 2)}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

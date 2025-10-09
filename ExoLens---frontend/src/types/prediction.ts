@@ -1,11 +1,9 @@
-export type ExoplanetClassification = 'CONFIRMED' | 'CANDIDATE' | 'FALSE POSITIVE' | string;
-
-export interface Exoplanet {
+export interface ViewPrediction {
   id: string;
   description: string;
   probability: number | null;
-  classification: ExoplanetClassification;
-  createdAt: string;
+  classification: string;
+  createdAt: string | null; // backend sends Date, we keep as ISO string in FE
   mass_value: number | null;
   mass_unit: string | null;
   radius_value: number | null;
@@ -20,14 +18,12 @@ export interface Exoplanet {
   st_radiusunit: string | null;
   st_teff_value: number | null;
   st_teffunit: string | null;
+  equilibrium_temp: number | null;
+  signal_to_noise: number | null;
   existingData: boolean;
-  // New fields provided by backend and needed for AI analysis
-  transition_depth_value?: number | null;
-  transition_depth_error?: number | null;
-  impact_parameter_value?: number | null;
-  impact_parameter_error?: number | null;
-  // NASA identifier (Kepler ID)
-  kepid?: number | null;
-  // Optional direct S/N if present
-  signal_to_noise?: number | null;
+  transition_depth_value: number | null;
+  transition_depth_error: number | null;
+  impact_parameter_value: number | null;
+  impact_parameter_error: number | null;
+  kepid: number | null;
 }

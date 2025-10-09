@@ -28,6 +28,7 @@ export function createCandidateParams(overrides: Partial<CandidateParams> = {}):
     radius_value: 1.0,
     radius_error: 0.1,
     radius_unit: 'Earth Radius',
+    equilibrium_temp: 300,
   };
 
   return { ...defaultParams, ...overrides };
@@ -45,6 +46,7 @@ export function createSignalParams(overrides: Partial<SignalParams> = {}): Signa
     transit_duration_unit: 'hours',
     transit_depth_value: 840,
     transit_depth_error: 10,
+    signal_to_noise: 15,
   };
 
   return { ...defaultParams, ...overrides };

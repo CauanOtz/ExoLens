@@ -247,13 +247,15 @@ export default function PlanetBuilderPanel() {
       setAnalysisLoading(true);
       window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', message: 'Running AI analysis…' } }));
       try {
-        // Build CSV same way as handlePredictCsv (derive values when possible)
+        // Build CSV with the 10 core features expected by the model
         const orbital_period = currentPlanet?.orbital_period_value ?? null;
         const transit_duration_hr = currentPlanet?.transit_duration_value ?? null;
-        let transit_depth_ppm: number | null = null;
-        if (typeof currentPlanet?.radius_value === 'number' && typeof currentPlanet?.st_radius_value === 'number' && currentPlanet.st_radius_value > 0) {
+        // prefer provided transition depth, fallback to radii-derived estimate
+        let transit_depth_ppm: number | null = currentPlanet?.transition_depth_value ?? null;
+        if ((transit_depth_ppm == null || Number.isNaN(transit_depth_ppm)) &&
+            typeof currentPlanet?.radius_value === 'number' && typeof currentPlanet?.st_radius_value === 'number' && currentPlanet.st_radius_value > 0) {
           const Rp = currentPlanet.radius_value;
-          const Rs = currentPlanet.st_radius_value * 109;
+          const Rs = currentPlanet.st_radius_value * 109; // convert solar radius to earth radii approx
           const frac = (Rp / Rs) ** 2;
           transit_depth_ppm = Math.round(frac * 1e6);
         }
@@ -261,20 +263,14 @@ export default function PlanetBuilderPanel() {
         const stellar_temp_k = currentPlanet?.st_teff_value ?? null;
         const stellar_radius_solar = currentPlanet?.st_radius_value ?? null;
         const stellar_mass_solar = currentPlanet?.st_mass_value ?? null;
-  // provide defaults for fields required by backend validation
-  const impact_parameter = (typeof (currentPlanet as any)?.impact_parameter === 'number') ? (currentPlanet as any).impact_parameter : 0;
-  // try obvious properties (some datasets use koi_teq / equilibrium_temp), fall back to 0
-  const equilibrium_temp = (currentPlanet as any)?.equilibrium_temp ?? (currentPlanet as any)?.koi_teq ?? 0;
-        const stellar_density = (stellar_mass_solar != null && stellar_radius_solar != null && stellar_radius_solar !== 0)
-          ? (stellar_mass_solar / (stellar_radius_solar ** 3))
-          : null;
-        const duration_over_period = (transit_duration_hr != null && orbital_period != null && orbital_period !== 0)
-          ? (transit_duration_hr / (orbital_period * 24))
-          : null;
-        const depth_per_planet_radius = (transit_depth_ppm != null && planet_radius_earth != null && planet_radius_earth !== 0)
-          ? (transit_depth_ppm / (planet_radius_earth ** 2))
-          : null;
-        const signal_to_noise = currentPlanet?.probability ?? null;
+        // impact parameter provided by backend (value), fallback to legacy field or leave blank
+        const impact_parameter = (typeof currentPlanet?.impact_parameter_value === 'number')
+          ? currentPlanet.impact_parameter_value
+          : (typeof (currentPlanet as any)?.impact_parameter === 'number' ? (currentPlanet as any).impact_parameter : null);
+        // equilibrium temperature if available
+        const equilibrium_temp = (currentPlanet as any)?.equilibrium_temp ?? (currentPlanet as any)?.koi_teq ?? null;
+        // explicit signal-to-noise if provided, else use probability as proxy
+        const signal_to_noise = (typeof currentPlanet?.signal_to_noise === 'number') ? currentPlanet.signal_to_noise : (currentPlanet?.probability ?? null);
 
         const csvRow: Record<string, any> = {
           orbital_period: orbital_period ?? '',
@@ -286,15 +282,19 @@ export default function PlanetBuilderPanel() {
           stellar_mass_solar: stellar_mass_solar ?? '',
           impact_parameter: impact_parameter ?? '',
           equilibrium_temp: equilibrium_temp ?? '',
-          stellar_density: stellar_density ?? '',
-          duration_over_period: duration_over_period ?? '',
-          depth_per_planet_radius: depth_per_planet_radius ?? '',
           signal_to_noise: signal_to_noise ?? '',
         };
         const keys = Object.keys(csvRow);
         const csv = keys.join(',') + '\n' + keys.map(k => (csvRow[k] === '' || csvRow[k] == null ? '' : String(csvRow[k]))).join(',');
 
-        const resp = await predictFromCsv(csv, true);
+        const meta = {
+          kepid: currentPlanet?.kepid ?? '',
+          transition_depth_error: currentPlanet?.transition_depth_error ?? '',
+          impact_parameter_error: currentPlanet?.impact_parameter_error ?? '',
+          planet_id: currentPlanet?.id ?? '',
+        } as const;
+
+        const resp = await predictFromCsv(csv, true, meta as any);
         if (resp && resp.length) {
           const r = resp[0] as PredictionResponse;
           // generate natural-language explanation from feature contributions
@@ -355,13 +355,13 @@ export default function PlanetBuilderPanel() {
     if (!currentPlanet) return;
     setAnalysisLoading(true);
     try {
-      // Build a CSV with the 13 features expected by the backend model.
-      // Missing fields will be filled by the backend, but we compute obvious derivations here.
+      // Build a CSV with the 10 features expected by the backend model.
       const orbital_period = currentPlanet?.orbital_period_value ?? null;
       const transit_duration_hr = currentPlanet?.transit_duration_value ?? null;
-      // compute transit depth (ppm) from radii if possible
-      let transit_depth_ppm: number | null = null;
-      if (typeof currentPlanet?.radius_value === 'number' && typeof currentPlanet?.st_radius_value === 'number' && currentPlanet.st_radius_value > 0) {
+      // prefer provided transition depth, fallback to radii-derived estimate
+      let transit_depth_ppm: number | null = currentPlanet?.transition_depth_value ?? null;
+      if ((transit_depth_ppm == null || Number.isNaN(transit_depth_ppm)) &&
+          typeof currentPlanet?.radius_value === 'number' && typeof currentPlanet?.st_radius_value === 'number' && currentPlanet.st_radius_value > 0) {
         const Rp = currentPlanet.radius_value;
         const Rs = currentPlanet.st_radius_value * 109; // convert solar radius to earth radii approx
         const frac = (Rp / Rs) ** 2;
@@ -371,19 +371,12 @@ export default function PlanetBuilderPanel() {
       const stellar_temp_k = currentPlanet?.st_teff_value ?? null;
       const stellar_radius_solar = currentPlanet?.st_radius_value ?? null;
       const stellar_mass_solar = currentPlanet?.st_mass_value ?? null;
-  // provide defaults for fields required by backend validation
-  const impact_parameter = (typeof (currentPlanet as any)?.impact_parameter === 'number') ? (currentPlanet as any).impact_parameter : 0;
-  const equilibrium_temp = (currentPlanet as any)?.equilibrium_temp ?? (currentPlanet as any)?.koi_teq ?? 0;
-      const stellar_density = (stellar_mass_solar != null && stellar_radius_solar != null && stellar_radius_solar !== 0)
-        ? (stellar_mass_solar / (stellar_radius_solar ** 3))
-        : null;
-      const duration_over_period = (transit_duration_hr != null && orbital_period != null && orbital_period !== 0)
-        ? (transit_duration_hr / (orbital_period * 24))
-        : null;
-      const depth_per_planet_radius = (transit_depth_ppm != null && planet_radius_earth != null && planet_radius_earth !== 0)
-        ? (transit_depth_ppm / (planet_radius_earth ** 2))
-        : null;
-      const signal_to_noise = currentPlanet?.probability ?? null;
+      // impact parameter (value) or fallback
+      const impact_parameter = (typeof currentPlanet?.impact_parameter_value === 'number')
+        ? currentPlanet.impact_parameter_value
+        : (typeof (currentPlanet as any)?.impact_parameter === 'number' ? (currentPlanet as any).impact_parameter : null);
+      const equilibrium_temp = (currentPlanet as any)?.equilibrium_temp ?? (currentPlanet as any)?.koi_teq ?? null;
+      const signal_to_noise = (typeof currentPlanet?.signal_to_noise === 'number') ? currentPlanet.signal_to_noise : (currentPlanet?.probability ?? null);
 
       const csvRow: Record<string, any> = {
         orbital_period: orbital_period ?? '',
@@ -395,16 +388,20 @@ export default function PlanetBuilderPanel() {
         stellar_mass_solar: stellar_mass_solar ?? '',
         impact_parameter: impact_parameter ?? '',
         equilibrium_temp: equilibrium_temp ?? '',
-        stellar_density: stellar_density ?? '',
-        duration_over_period: duration_over_period ?? '',
-        depth_per_planet_radius: depth_per_planet_radius ?? '',
         signal_to_noise: signal_to_noise ?? '',
       };
 
       const keys = Object.keys(csvRow);
       const csv = keys.join(',') + '\n' + keys.map(k => (csvRow[k] === '' || csvRow[k] == null ? '' : String(csvRow[k]))).join(',');
 
-      const resp = await predictFromCsv(csv, true);
+      const meta = {
+        kepid: currentPlanet?.kepid ?? '',
+        transition_depth_error: currentPlanet?.transition_depth_error ?? '',
+        impact_parameter_error: currentPlanet?.impact_parameter_error ?? '',
+        planet_id: currentPlanet?.id ?? '',
+      } as const;
+
+      const resp = await predictFromCsv(csv, true, meta as any);
       if (resp && resp.length) {
         // for now show first result in analysis panel
         const r = resp[0];
@@ -432,6 +429,9 @@ export default function PlanetBuilderPanel() {
       await saveExoplanetPrediction(currentPlanet.id);
       setSaveStatus({ type: 'success', message: 'Prediction saved successfully.' });
       window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message: 'Prediction saved successfully' } }));
+      // Signal other parts of the app to refresh lists and optionally open the modal
+      window.dispatchEvent(new CustomEvent('prediction:saved'));
+      window.dispatchEvent(new CustomEvent('my-predictions:open'));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to save prediction.';
       setSaveStatus({ type: 'error', message });

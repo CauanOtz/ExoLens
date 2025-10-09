@@ -71,7 +71,7 @@ export class PredictionService {
 
     /**
      */
-    async predictFromCsv(fileBuffer: Buffer, isRealData: boolean, userId: string) {
+    async predictFromCsv(fileBuffer: Buffer, isRealData: boolean, userId: string, meta?: Record<string, any>) {
         const records = await this._parseCsv(fileBuffer);
 
         const predictionPromises = records.map(async (csvRow) => {
@@ -84,8 +84,14 @@ export class PredictionService {
                 // Chamamos a IA para obter a probabilidade real
                 const aiResult = await this._callAiModel(predictionInputForAI, isRealData);
 
+                // Anexar metadados úteis (como kepid) para rastreabilidade na camada de UI
+                const enriched = {
+                  ...aiResult,
+                  inputData: { ...aiResult.inputData, ...(meta ? { kepid: meta.kepid ?? null, planet_id: meta.planet_id ?? null } : {}) },
+                };
+
                 // Agora, retornamos o objeto final com a probabilidade correta e os dados de entrada
-                return aiResult;
+                return enriched;
             } catch (error: any) {
                 return { error: `Falha na linha: ${JSON.stringify(csvRow)}`, details: error.message ?? 'Unknown error' };
             }
@@ -184,7 +190,7 @@ export class PredictionService {
             'impact_parameter': data.signalParams.impact_parameter_value,
             'equilibrium_temp': data.candidateParams.equilibrium_temp,
             'signal_to_noise': data.signalParams.signal_to_noise,
-        };
+        } as const;
 
         const missingFeatures = MINIMUM_FEATURES_FOR_PREDICTION.filter(
             (feature: keyof typeof featureMap) => featureMap[feature] === null || featureMap[feature] === undefined

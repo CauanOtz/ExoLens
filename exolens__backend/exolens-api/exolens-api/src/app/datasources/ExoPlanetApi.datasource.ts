@@ -5,7 +5,8 @@ import {
     formatPredictionByViewSchema,
     SignalParams,
     CandidateParams,
-    StarParams
+    StarParams,
+    signalParams
 } from '../validators/predictionValidator';
 import { PredictionRepository } from './../repositories/PredicitionRepository';
 import NodeCache from 'node-cache';
@@ -13,9 +14,10 @@ import NodeCache from 'node-cache';
 const NASA_API_BASE_URL = process.env.NASA_API_BASE_URL || 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
 const NASA_API_FORMAT = 'json';
 const NASA_TABLE_NAME = 'cumulative';
-const NASA_API_COLUMNS = 'kepler_name,koi_score,koi_disposition,koi_prad,koi_prad_err1,koi_duration,koi_duration_err1,koi_period,koi_period_err1,koi_smass,koi_smass_err1,koi_steff,koi_steff_err1,koi_srad,koi_srad_err1,koi_depth,koi_depth_err1,koi_impact,koi_impact_err1,koi_teq,koi_model_snr';
+const NASA_API_COLUMNS = 'kepid,kepler_name,koi_score,koi_disposition,koi_prad,koi_prad_err1,koi_duration,koi_duration_err1,koi_period,koi_period_err1,koi_smass,koi_smass_err1,koi_steff,koi_steff_err1,koi_srad,koi_srad_err1,koi_depth,koi_depth_err1,koi_impact,koi_impact_err1,koi_teq,koi_model_snr';
 
 interface NasaExoPlanet {
+    kepid: number | null;
     kepler_name: string;
     koi_score: number | null;
     koi_disposition: string;
@@ -70,7 +72,11 @@ export class ExoPlanetApiDataSource implements IExoPlanetDataSource {
     constructor(private readonly predictionRepository: PredictionRepository) {
         this.axiosInstance = axios.create({
             baseURL: NASA_API_BASE_URL,
-            timeout: 15000, // Aumentei o timeout para 15s por segurança
+            timeout: 20000,
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'ExoLens-Backend/1.0 (+https://example.org)'
+            },
         });
 
         this.cache = new NodeCache({ stdTTL: 3600 });
@@ -108,7 +114,7 @@ export class ExoPlanetApiDataSource implements IExoPlanetDataSource {
 
 
     private _mapPlanetToPrediction(planet: NasaExoPlanet): InternalPrediction {
-        return {
+        const pred: InternalPrediction = {
             id: planet.kepler_name,
             description: `Exoplanet ${planet.kepler_name} from NASA Exoplanet Archive`,
             probability: planet.koi_score ?? 0,
@@ -148,7 +154,50 @@ export class ExoPlanetApiDataSource implements IExoPlanetDataSource {
                 effective_temperature_error: planet.koi_steff_err1 ?? 0,
                 effective_temperature_unit: 'K',
             },
-        };
+            // carry kepid to the view mapper
+            ...(planet.kepid != null ? { kepid: planet.kepid as any } : {}),
+        } as any;
+
+        this._logMissingFields(planet, 'mapPlanetToPrediction');
+        return pred;
+    }
+
+    private _logMissingFields(planet: NasaExoPlanet, ctx: string) {
+        const checks: Array<{label: string; value: unknown}> = [
+            { label: 'kepid', value: planet.kepid },
+            { label: 'orbital_period', value: planet.koi_period },
+            { label: 'transit_duration_hr', value: planet.koi_duration },
+            { label: 'transit_depth_ppm', value: planet.koi_depth },
+            { label: 'planet_radius_earth', value: planet.koi_prad },
+            { label: 'stellar_temp_k', value: planet.koi_steff },
+            { label: 'stellar_radius_solar', value: planet.koi_srad },
+            { label: 'stellar_mass_solar', value: planet.koi_smass },
+            { label: 'impact_parameter', value: planet.koi_impact },
+            { label: 'equilibrium_temp', value: planet.koi_teq },
+            { label: 'signal_to_noise', value: planet.koi_model_snr },
+        ];
+        const missing = checks
+            .filter(c => c.value === null || typeof c.value === 'undefined' || Number.isNaN(c.value as any))
+            .map(c => c.label);
+        if (missing.length) {
+            const snapshot = {
+                kepid: planet.kepid ?? null,
+                kepler_name: planet.kepler_name,
+                koi_period: planet.koi_period,
+                koi_duration: planet.koi_duration,
+                koi_depth: planet.koi_depth,
+                koi_prad: planet.koi_prad,
+                koi_steff: planet.koi_steff,
+                koi_srad: planet.koi_srad,
+                koi_smass: planet.koi_smass,
+                koi_impact: planet.koi_impact,
+                koi_teq: planet.koi_teq,
+                koi_model_snr: planet.koi_model_snr,
+            };
+            // Compact one-line warning for easy grepping
+            console.warn(`[ExoPlanetApi] Missing fields (${missing.join(', ')}) for ${planet.kepler_name} (kepid=${planet.kepid ?? 'n/a'}) [${ctx}] -> snapshot=`,
+                JSON.stringify(snapshot));
+        }
     }
     
     private _buildApiQuery(selectClause: string, whereClause?: string, orderByClause?: string): string {
@@ -169,12 +218,28 @@ export class ExoPlanetApiDataSource implements IExoPlanetDataSource {
                 params: {
                     query: query,
                     format: NASA_API_FORMAT
-                }
+                },
+                // Avoid caching proxies
+                validateStatus: (s) => s >= 200 && s < 300,
             });
             return response.data;
         } catch (error: any) {
-            console.error('Ocorreu um erro na requisição à API da NASA:', error.response?.data || error.message);
-            throw new NasaApiError('Falha ao se comunicar com a API da NASA.', error.response?.status);
+            const status = error?.response?.status;
+            const statusText = error?.response?.statusText;
+            const respData = typeof error?.response?.data === 'string' ? error.response.data : JSON.stringify(error?.response?.data || {});
+            const snippet = (respData || '').toString().slice(0, 512).replace(/\s+/g, ' ');
+            console.error('[NASA API] Request failed', {
+                baseURL: NASA_API_BASE_URL,
+                status,
+                statusText,
+                snippet,
+            });
+            // Optional offline fallback
+            if (process.env.NASA_ALLOW_EMPTY_FALLBACK === '1') {
+                console.warn('[NASA API] Using empty fallback due to failure. Set NASA_ALLOW_EMPTY_FALLBACK=0 to disable.');
+                return [];
+            }
+            throw new NasaApiError('Falha ao se comunicar com a API da NASA.', status);
         }
     }
 
